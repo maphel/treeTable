@@ -1,5 +1,6 @@
 import * as React from 'react';
-import type { RowId, RowModel } from '../types';
+import { PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import type { DragActivationOptions, RowId, RowModel, ColumnDef } from '../types';
 import { toIdSet } from './utils';
 
 export function useExpandedRows(
@@ -62,4 +63,53 @@ export function useValidTargets<T extends object>(
   }, [activeId, byKey, getValidDropTargets]);
 
   return validTargets;
+}
+
+/** Build pointer sensors with configurable activation (delay/tolerance or distance). */
+export function useDragSensors(dragActivation?: DragActivationOptions) {
+  return useSensors(
+    useSensor(
+      PointerSensor,
+      ((): any => {
+        const a = dragActivation;
+        if (a?.mode === 'distance') {
+          return { activationConstraint: { distance: a.distance ?? 3 } };
+        }
+        return { activationConstraint: { delay: a?.delay ?? 150, tolerance: a?.tolerance ?? 5 } };
+      })()
+    )
+  );
+}
+
+/** Centralize inline editing state and helpers. */
+export function useInlineEditing<T extends object = {}>() {
+  const [editingKey, setEditingKey] = React.useState<string | null>(null);
+  const [editingValue, setEditingValue] = React.useState<any>(undefined);
+  const [autoClosedKeys, setAutoClosedKeys] = React.useState<Set<string>>(new Set());
+
+  const startEdit = React.useCallback((row: RowModel<T>, column: ColumnDef<T>) => {
+    const key = `${String(row.id)}::${column.id}`;
+    const raw = (row as any)[column.id];
+    setEditingKey(key);
+    setEditingValue(raw);
+  }, []);
+
+  const markAutoClosed = React.useCallback((key: string) => {
+    setAutoClosedKeys(prev => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  }, []);
+
+  return {
+    editingKey,
+    setEditingKey,
+    editingValue,
+    setEditingValue,
+    autoClosedKeys,
+    startEdit,
+    markAutoClosed,
+  } as const;
 }

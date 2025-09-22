@@ -12,6 +12,8 @@ import type { ColumnDef, RowId, RowModel, ViewMode } from '../types';
 import type { VisibleRow } from './types';
 import DropEdgeOverlays from './DropEdgeOverlays';
 import IndentedCell from './IndentedCell';
+import EditorCell from './EditorCell';
+import ViewCell from './ViewCell';
 
 export type DraggableRowProps<T extends object> = {
   data: VisibleRow<T>;
@@ -131,90 +133,7 @@ export default function DraggableRow<T extends object = {}>(props: DraggableRowP
     return 'off';
   }, [row, viewMode, isEditable]);
 
-  function EditorCell({ col, mode, cellKey }: { col: ColumnDef<T>; mode: 'locked' | 'unlocked' | 'off'; cellKey: string }) {
-    const key = cellKey;
-    const raw = (row as any)[col.id];
-    const always = mode === 'locked';
-    const active = always || editingKey === key;
-    const [val, setVal] = React.useState<any>(active ? (always ? raw : editingValue) : raw);
-
-    React.useEffect(() => {
-      if (always) {
-        setVal(raw);
-      } else if (editingKey === key) {
-        setVal(editingValue);
-      } else {
-        setVal(raw);
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [raw, editingKey, editingValue, key, always]);
-
-    const commitWithValue = React.useCallback(async (v: any) => {
-      const parsed = col.valueParser ? col.valueParser(v, row) : v;
-      try {
-        await onEditCommit?.(row, col, parsed);
-        if (!always) {
-          setEditingKey(null);
-          setEditingValue(undefined);
-        }
-        if (mode === 'unlocked') {
-          markAutoClosed(key);
-        }
-      } catch (e) {
-        // keep editor open on error
-        // eslint-disable-next-line no-console
-        console.warn('Commit failed', e);
-      }
-    }, [col, row, always, mode, key]);
-
-    const commit = React.useCallback(async () => {
-      await commitWithValue(val);
-    }, [commitWithValue, val]);
-
-    const cancel = React.useCallback(() => {
-      if (!always) {
-        setEditingKey(null);
-        setEditingValue(undefined);
-      } else {
-        setVal(raw);
-      }
-      if (mode === 'unlocked') {
-        markAutoClosed(key);
-      }
-    }, [always, raw, mode, key]);
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); void commit(); }
-      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancel(); }
-    };
-
-    const handleBlur = () => { void commit(); };
-
-    if (!col.editor) return null;
-
-    const autoCommit = typeof col.autoCommitOnChange === 'function' ? (col.autoCommitOnChange as any)(row) : !!col.autoCommitOnChange;
-    const commitOnceRef = React.useRef(false);
-
-    const handleChange = React.useCallback((next: any) => {
-      setVal(next);
-      if (autoCommit && !always && !commitOnceRef.current) {
-        commitOnceRef.current = true;
-        void commitWithValue(next);
-      }
-    }, [autoCommit, always, mode, commitWithValue]);
-
-    return (
-      <Box onKeyDown={handleKeyDown} sx={{ width: '100%' }}>
-        {col.editor({ row, value: val, onChange: handleChange, commit: () => void commit(), cancel, autoFocus: !always && editingKey === key })}
-      </Box>
-    );
-  }
-
-  const renderViewContent = (col: ColumnDef<T>) => {
-    const raw = (row as any)[col.id];
-    const value = col.valueFormatter ? col.valueFormatter(raw, row) : raw;
-    return col.cell ? col.cell({ row, value, level, column: col }) : value as React.ReactNode;
-  };
+  
 
   const dragAttrs = { ...(attributes as any), tabIndex: -1 } as typeof attributes & { tabIndex: number };
 
@@ -268,9 +187,20 @@ export default function DraggableRow<T extends object = {}>(props: DraggableRowP
         const always = mode === 'locked';
         const isActive = always || editingKey === key || initiallyUnlockedActive;
         const content = isActive ? (
-          <EditorCell col={col} mode={mode} cellKey={key} />
+          <EditorCell
+            row={row}
+            col={col}
+            mode={mode}
+            cellKey={key}
+            editingKey={editingKey}
+            editingValue={editingValue}
+            setEditingKey={setEditingKey}
+            setEditingValue={setEditingValue}
+            markAutoClosed={markAutoClosed}
+            onEditCommit={onEditCommit}
+          />
         ) : (
-          renderViewContent(col)
+          <ViewCell row={row} col={col} level={level} />
         );
 
         return (

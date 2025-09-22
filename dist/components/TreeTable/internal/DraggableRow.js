@@ -10,6 +10,8 @@ import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import DropEdgeOverlays from './DropEdgeOverlays';
 import IndentedCell from './IndentedCell';
+import EditorCell from './EditorCell';
+import ViewCell from './ViewCell';
 export default function DraggableRow(props) {
     const { data, visibleColumns, size, readOnly, showActionsColumn, getRowCanDrag, getRowCanDrop, validTargets, overId, activeId, byKey, toggle, viewMode, getRowActions, editingKey, editingValue, setEditingKey, setEditingValue, autoClosedKeys, markAutoClosed, startEdit, onEditCommit, } = props;
     const { row, level, hasChildren, expanded: isExpanded } = data;
@@ -81,88 +83,6 @@ export default function DraggableRow(props) {
             return 'locked';
         return 'off';
     }, [row, viewMode, isEditable]);
-    function EditorCell({ col, mode, cellKey }) {
-        const key = cellKey;
-        const raw = row[col.id];
-        const always = mode === 'locked';
-        const active = always || editingKey === key;
-        const [val, setVal] = React.useState(active ? (always ? raw : editingValue) : raw);
-        React.useEffect(() => {
-            if (always) {
-                setVal(raw);
-            }
-            else if (editingKey === key) {
-                setVal(editingValue);
-            }
-            else {
-                setVal(raw);
-            }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [raw, editingKey, editingValue, key, always]);
-        const commitWithValue = React.useCallback(async (v) => {
-            const parsed = col.valueParser ? col.valueParser(v, row) : v;
-            try {
-                await (onEditCommit === null || onEditCommit === void 0 ? void 0 : onEditCommit(row, col, parsed));
-                if (!always) {
-                    setEditingKey(null);
-                    setEditingValue(undefined);
-                }
-                if (mode === 'unlocked') {
-                    markAutoClosed(key);
-                }
-            }
-            catch (e) {
-                // keep editor open on error
-                // eslint-disable-next-line no-console
-                console.warn('Commit failed', e);
-            }
-        }, [col, row, always, mode, key]);
-        const commit = React.useCallback(async () => {
-            await commitWithValue(val);
-        }, [commitWithValue, val]);
-        const cancel = React.useCallback(() => {
-            if (!always) {
-                setEditingKey(null);
-                setEditingValue(undefined);
-            }
-            else {
-                setVal(raw);
-            }
-            if (mode === 'unlocked') {
-                markAutoClosed(key);
-            }
-        }, [always, raw, mode, key]);
-        const handleKeyDown = (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                void commit();
-            }
-            else if (e.key === 'Escape') {
-                e.preventDefault();
-                e.stopPropagation();
-                cancel();
-            }
-        };
-        const handleBlur = () => { void commit(); };
-        if (!col.editor)
-            return null;
-        const autoCommit = typeof col.autoCommitOnChange === 'function' ? col.autoCommitOnChange(row) : !!col.autoCommitOnChange;
-        const commitOnceRef = React.useRef(false);
-        const handleChange = React.useCallback((next) => {
-            setVal(next);
-            if (autoCommit && !always && !commitOnceRef.current) {
-                commitOnceRef.current = true;
-                void commitWithValue(next);
-            }
-        }, [autoCommit, always, mode, commitWithValue]);
-        return (_jsx(Box, { onKeyDown: handleKeyDown, sx: { width: '100%' }, children: col.editor({ row, value: val, onChange: handleChange, commit: () => void commit(), cancel, autoFocus: !always && editingKey === key }) }));
-    }
-    const renderViewContent = (col) => {
-        const raw = row[col.id];
-        const value = col.valueFormatter ? col.valueFormatter(raw, row) : raw;
-        return col.cell ? col.cell({ row, value, level, column: col }) : value;
-    };
     const dragAttrs = { ...attributes, tabIndex: -1 };
     const handleRowKeyDown = (e) => {
         if (e.target !== e.currentTarget)
@@ -204,7 +124,7 @@ export default function DraggableRow(props) {
                 const initiallyUnlockedActive = mode === 'unlocked' && !autoClosedKeys.has(key);
                 const always = mode === 'locked';
                 const isActive = always || editingKey === key || initiallyUnlockedActive;
-                const content = isActive ? (_jsx(EditorCell, { col: col, mode: mode, cellKey: key })) : (renderViewContent(col));
+                const content = isActive ? (_jsx(EditorCell, { row: row, col: col, mode: mode, cellKey: key, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, markAutoClosed: markAutoClosed, onEditCommit: onEditCommit })) : (_jsx(ViewCell, { row: row, col: col, level: level }));
                 return (_jsxs(TableCell, { align: col.align, style: { width: col.width, position: 'relative' }, sx: !!col.editor && editable && !always && !isActive ? { pr: 5, '&:hover .cell-edit-btn': { opacity: 1 } } : undefined, onDoubleClick: () => { if (!always && editable)
                         startEdit(row, col); }, children: [IndentedCell(row, col, level, idx === 0, hasChildren, isExpanded, hasChildren ? () => toggle(row.id) : undefined, idx === 0 && canDrag ? (_jsx(IconButton, { size: size === 'small' ? 'small' : 'medium', disableRipple: true, disableFocusRipple: true, sx: { mr: 1, cursor: 'grab', touchAction: 'none', '&:focus,&:focus-visible': { outline: 'none' } }, ...dragAttrs, ...listeners, children: _jsx(DragIndicatorIcon, { fontSize: size === 'small' ? 'small' : 'medium' }) })) : undefined, size, content), !!col.editor && editable && !always && !isActive && (_jsx(IconButton, { size: "small", className: "cell-edit-btn", "aria-label": "Edit", onClick: (e) => { e.stopPropagation(); startEdit(row, col); }, sx: { position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', opacity: 0, transition: 'opacity 120ms' }, children: _jsx(EditOutlinedIcon, { fontSize: "small" }) }))] }, col.id));
             }), getRowActions && showActionsColumn && (_jsx(TableCell, { align: "right", children: getRowActions(row) }, "__actions")), !readOnly && (_jsxs(_Fragment, { children: [_jsx(Box, { ref: setInsideRef, sx: { position: 'absolute', left: 0, right: 0, top: '33.333%', bottom: '33.333%', pointerEvents: activeId ? 'auto' : 'none', display: insideAllowed ? 'block' : 'none' } }), _jsx(DropEdgeOverlays, { rowId: draggableId, allowedBefore: !!activeId && beforeAllowed, allowedAfter: !!activeId && afterAllowed, isActiveDrag: !!activeId })] }))] }, String(row.id)));

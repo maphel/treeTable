@@ -122,12 +122,7 @@ export type TreeTableProps<T extends object = {}> = {
      * - mode 'delay': press-and-hold with optional tolerance (default).
      * - mode 'distance': start dragging after moving a few pixels.
      */
-    dragActivation?: {
-        mode?: 'delay' | 'distance';
-        delay?: number;
-        tolerance?: number;
-        distance?: number;
-    };
+    dragActivation?: DragActivationOptions;
     expandedRowIds?: Set<RowId> | RowId[];
     onRowToggle?: (id: RowId, expanded: boolean) => void;
     getRowCanDrag?: (row: RowModel<T>) => boolean;
@@ -147,4 +142,11 @@ export type TreeTableProps<T extends object = {}> = {
      * - Resolve to close the editor; throw/reject to keep it open and surface error.
      */
     onEditCommit?: (row: RowModel<T>, column: ColumnDef<T>, nextValue: unknown) => Promise<void> | void;
+};
+/** Options to configure pointer drag activation behavior. */
+export type DragActivationOptions = {
+    mode?: 'delay' | 'distance';
+    delay?: number;
+    tolerance?: number;
+    distance?: number;
 };
