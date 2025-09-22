@@ -5,7 +5,7 @@ TreeTable is a generic React component that renders hierarchical data as an MUI 
 - Expand/collapse, keyboard navigation, and accessible treegrid semantics
 - Optional inline editing per column with editor components
 - Drag-and-drop reordering with precise drop zones (inside, before, after)
-- Audience-aware views (pro vs customer) and global edit mode
+- Flexible view context and global edit mode
 - Per-column visibility, formatting and parsing
 - Optional row actions column
 
@@ -63,6 +63,7 @@ const columns: ColumnDef<Data>[] = [
     header: 'Price',
     align: 'right',
     width: 120,
+    // You decide the view context; TreeTable just passes it through
     getIsVisible: (view) => view !== 'customer',
     editor: (p) => <CurrencyInput {...p} locale="de-DE" currency="EUR" />,
     valueParser: parseCurrency,
@@ -84,9 +85,10 @@ Core Concepts
 - Row model: `RowModel<T>` adds `id`, `type`, `depth`, and optional `children` to your data. The component computes visual indentation from the tree; you still set `depth` while mapping.
 - Column definitions: `ColumnDef<T>` describes how values are shown (`cell`, `valueFormatter`) and edited (`editor`, `valueParser`). Use `getIsEditable(row)` per row and `getIsVisible(viewMode)` per audience.
 - Controlled expansion: pass `expandedRowIds` and `onRowToggle` to control expand/collapse, or omit to have uncontrolled expansion.
-- View modes: `viewMode` accepts `'pro' | 'customer' | 'edit' | 'view'`.
-  - `'customer'` disables DnD and hides the actions column.
+- View modes: `viewMode` accepts `'edit' | 'view'` and any other string for your own context
+  (e.g. `'customer'`, `'pro'`, `'readonly'`).
   - `'edit'` forces editable cells to render their editor (locked).
+  - Other values are passed to `getIsVisible(viewMode)`; TreeTable does not special‑case them.
 
 API Reference
 
@@ -120,7 +122,7 @@ type ColumnDef<T extends object = {}> = {
     autoFocus?: boolean;
   }) => React.ReactNode;
   getIsEditable?: (row: RowModel<T>) => boolean;
-  getIsVisible?: (viewMode: ViewMode | undefined) => boolean;
+  getIsVisible?: (viewMode: unknown) => boolean;
   editMode?: 'locked' | 'unlocked' | ((row: RowModel<T>) => 'locked' | 'unlocked' | undefined);
   autoCommitOnChange?: boolean | ((row: RowModel<T>) => boolean);
   valueFormatter?: (value: unknown, row: RowModel<T>) => React.ReactNode;
@@ -135,6 +137,7 @@ type TreeTableProps<T extends object = {}> = {
   rows: ReadonlyArray<RowModel<T>>;
   columns: ReadonlyArray<ColumnDef<T>>;
   size?: 'small' | 'medium';
+  readOnly?: boolean; // disables editing and dragging UI; marks table aria-readonly
   dragActivation?: { mode?: 'delay' | 'distance'; delay?: number; tolerance?: number; distance?: number };
   expandedRowIds?: Set<RowId> | RowId[];
   onRowToggle?: (id: RowId, expanded: boolean) => void;
@@ -144,7 +147,8 @@ type TreeTableProps<T extends object = {}> = {
   onDrop?: (sourceId: RowId, targetId: RowId, position: 'inside' | 'before' | 'after') => Promise<void> | void;
   getRowActions?: (row: RowModel<T>) => React.ReactNode;
   actionsHeader?: React.ReactNode; // header label for actions column
-  viewMode?: ViewMode; // 'view' | 'edit' | 'customer' | 'pro'
+  viewMode?: ViewMode; // 'view' | 'edit' | any string context
+  showActionsColumn?: boolean; // show/hide actions column when getRowActions is set
   onEditCommit?: (row: RowModel<T>, column: ColumnDef<T>, nextValue: unknown) => Promise<void> | void;
 };
 ```
@@ -176,9 +180,9 @@ Editing
 
 Visibility & View Modes
 
-- `getIsVisible(viewMode)` decides per-column visibility for audiences such as `'customer'` vs `'pro'`.
-- In `'customer'` view, drag handles and the actions column are hidden; the table is marked read-only.
-- Use `'view' | 'edit'` to control global edit lock behavior independent of audience.
+- `getIsVisible(viewMode)` decides per-column visibility using any string you pass as `viewMode`.
+- Use the `readOnly` prop to disable editing/drag UI and set `aria-readonly`.
+- Use `showActionsColumn` to explicitly control whether the actions column renders.
 
 Editors and Formatters
 
@@ -245,7 +249,7 @@ Keyboard and A11Y
 
 - Use Left/Right arrows on a focused row to collapse/expand when children exist.
 - First column shows indentation with an accessible expand/collapse button.
-- The table uses `role="treegrid"` and marks customer view as read-only.
+- The table uses `role="treegrid"` and applies `aria-readonly` when `readOnly` is true.
 
 Where to look in this repo
 

@@ -27,9 +27,10 @@ import * as React from 'react';
  * - For async/conditional target filtering, provide `getValidDropTargets(source)` returning ids.
  *
  * View modes
- * - `viewMode` can be 'view' | 'edit' | 'customer' | 'pro'.
- *   - 'edit' forces editable cells to render their editor (locked).
- *   - 'customer' typically hides actions or sensitive columns via `getIsVisible(viewMode)`.
+ * - `viewMode` controls global edit lock when set to 'edit'.
+ * - You can pass any other string (e.g. 'customer', 'pro', 'readonly') as a free-form
+ *   context for `getIsVisible(viewMode)` to drive column visibility. TreeTable itself
+ *   does not special-case these values anymore.
  */
 export type RowId = string | number;
 /**
@@ -44,11 +45,11 @@ export type RowModel<T extends object = {}> = T & {
     children?: RowModel<T>[];
 };
 /**
- * Controls default editing behavior and audience-specific visibility.
+ * ViewMode controls global edit lock and provides a free-form context for visibility.
  * - 'view' | 'edit': global edit lock. When 'edit', editable cells default to locked editors.
- * - 'customer' | 'pro': audience hint for `getIsVisible(viewMode)` and to disable actions/drag in customer view.
+ * - any other string: treated as an app-defined context passed to `getIsVisible(viewMode)`.
  */
-export type ViewMode = 'view' | 'edit' | 'customer' | 'pro';
+export type ViewMode = 'view' | 'edit' | (string & {});
 /**
  * Drop intent:
  * - 'inside': drop as a child of the target
@@ -87,8 +88,8 @@ export type ColumnDef<T extends object = {}> = {
     }) => React.ReactNode;
     /** New: predicate for column editability; overrides legacy 'editable' when provided. */
     getIsEditable?: (row: RowModel<T>) => boolean;
-    /** New: predicate controlling column visibility per view mode. */
-    getIsVisible?: (viewMode: ViewMode | undefined) => boolean;
+    /** Predicate controlling column visibility; receives your `viewMode` context. */
+    getIsVisible?: (viewContext: unknown) => boolean;
     /**
      * Controls initial edit behavior per cell.
      * - 'locked': editor is always shown and does not close on commit (unless you programmatically change the row).
@@ -114,6 +115,8 @@ export type TreeTableProps<T extends object = {}> = {
     columns: ReadonlyArray<ColumnDef<T>>;
     /** Visual density; maps to MUI Table size. Defaults to 'medium'. */
     size?: 'small' | 'medium';
+    /** When true, disables editing and dragging UI; table is marked aria-readonly. */
+    readOnly?: boolean;
     /**
      * Configure how dragging is activated.
      * - mode 'delay': press-and-hold with optional tolerance (default).
@@ -136,6 +139,8 @@ export type TreeTableProps<T extends object = {}> = {
     getRowActions?: (row: RowModel<T>) => React.ReactNode;
     /** Header label for the actions column when getRowActions is provided. Default: 'Actions'. */
     actionsHeader?: React.ReactNode;
+    /** Controls whether the actions column renders when `getRowActions` is provided. Default: true. */
+    showActionsColumn?: boolean;
     viewMode?: ViewMode;
     /**
      * Called when a cell edit is committed.

@@ -17,7 +17,8 @@ export type DraggableRowProps<T extends object> = {
   data: VisibleRow<T>;
   visibleColumns: ColumnDef<T>[];
   size: 'small' | 'medium';
-  isCustomerView: boolean;
+  readOnly: boolean;
+  showActionsColumn: boolean;
   getRowCanDrag?: (row: RowModel<T>) => boolean;
   getRowCanDrop?: (source: RowModel<T>, target: RowModel<T>, position: 'inside' | 'before' | 'after') => boolean;
   validTargets: Set<RowId> | null;
@@ -43,7 +44,8 @@ export default function DraggableRow<T extends object = {}>(props: DraggableRowP
     data,
     visibleColumns,
     size,
-    isCustomerView,
+    readOnly,
+    showActionsColumn,
     getRowCanDrag,
     getRowCanDrop,
     validTargets,
@@ -66,7 +68,7 @@ export default function DraggableRow<T extends object = {}>(props: DraggableRowP
   const { row, level, hasChildren, expanded: isExpanded } = data;
   const draggableId = String(row.id);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: draggableId });
-  const canDrag = isCustomerView ? false : (getRowCanDrag ? getRowCanDrag(row) : true);
+  const canDrag = readOnly ? false : (getRowCanDrag ? getRowCanDrag(row) : true);
 
   // inside droppable (for moving into a folder)
   const insideId = React.useMemo(() => `inside:${draggableId}` as const, [draggableId]);
@@ -115,10 +117,10 @@ export default function DraggableRow<T extends object = {}>(props: DraggableRowP
   }, [activeId, byKey, getRowCanDrop, row, validTargets]);
 
   const isEditable = React.useCallback((col: ColumnDef<T>) => {
-    if (isCustomerView) return false;
+    if (readOnly) return false;
     if (typeof col.getIsEditable === 'function') return !!col.getIsEditable(row);
     return !!col.editor;
-  }, [row, isCustomerView]);
+  }, [row, readOnly]);
 
   const resolveEditMode = React.useCallback((col: ColumnDef<T>): 'locked' | 'unlocked' | 'off' => {
     const modeRaw = typeof col.editMode === 'function' ? (col.editMode as any)(row) : col.editMode;
@@ -316,11 +318,11 @@ export default function DraggableRow<T extends object = {}>(props: DraggableRowP
           </TableCell>
         );
       })}
-      {getRowActions && !isCustomerView && (
+      {getRowActions && showActionsColumn && (
         <TableCell key="__actions" align="right">{getRowActions(row)}</TableCell>
       )}
 
-      {!isCustomerView && (
+      {!readOnly && (
         <>
           <Box
             ref={setInsideRef}

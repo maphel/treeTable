@@ -11,11 +11,11 @@ import { CSS } from '@dnd-kit/utilities';
 import DropEdgeOverlays from './DropEdgeOverlays';
 import IndentedCell from './IndentedCell';
 export default function DraggableRow(props) {
-    const { data, visibleColumns, size, isCustomerView, getRowCanDrag, getRowCanDrop, validTargets, overId, activeId, byKey, toggle, viewMode, getRowActions, editingKey, editingValue, setEditingKey, setEditingValue, autoClosedKeys, markAutoClosed, startEdit, onEditCommit, } = props;
+    const { data, visibleColumns, size, readOnly, showActionsColumn, getRowCanDrag, getRowCanDrop, validTargets, overId, activeId, byKey, toggle, viewMode, getRowActions, editingKey, editingValue, setEditingKey, setEditingValue, autoClosedKeys, markAutoClosed, startEdit, onEditCommit, } = props;
     const { row, level, hasChildren, expanded: isExpanded } = data;
     const draggableId = String(row.id);
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: draggableId });
-    const canDrag = isCustomerView ? false : (getRowCanDrag ? getRowCanDrag(row) : true);
+    const canDrag = readOnly ? false : (getRowCanDrag ? getRowCanDrag(row) : true);
     // inside droppable (for moving into a folder)
     const insideId = React.useMemo(() => `inside:${draggableId}`, [draggableId]);
     const { isOver: isInsideOver, setNodeRef: setInsideRef } = useDroppable({ id: insideId });
@@ -64,12 +64,12 @@ export default function DraggableRow(props) {
         return byProps && byValid;
     }, [activeId, byKey, getRowCanDrop, row, validTargets]);
     const isEditable = React.useCallback((col) => {
-        if (isCustomerView)
+        if (readOnly)
             return false;
         if (typeof col.getIsEditable === 'function')
             return !!col.getIsEditable(row);
         return !!col.editor;
-    }, [row, isCustomerView]);
+    }, [row, readOnly]);
     const resolveEditMode = React.useCallback((col) => {
         const modeRaw = typeof col.editMode === 'function' ? col.editMode(row) : col.editMode;
         if (modeRaw === 'locked')
@@ -207,5 +207,5 @@ export default function DraggableRow(props) {
                 const content = isActive ? (_jsx(EditorCell, { col: col, mode: mode, cellKey: key })) : (renderViewContent(col));
                 return (_jsxs(TableCell, { align: col.align, style: { width: col.width, position: 'relative' }, sx: !!col.editor && editable && !always && !isActive ? { pr: 5, '&:hover .cell-edit-btn': { opacity: 1 } } : undefined, onDoubleClick: () => { if (!always && editable)
                         startEdit(row, col); }, children: [IndentedCell(row, col, level, idx === 0, hasChildren, isExpanded, hasChildren ? () => toggle(row.id) : undefined, idx === 0 && canDrag ? (_jsx(IconButton, { size: size === 'small' ? 'small' : 'medium', disableRipple: true, disableFocusRipple: true, sx: { mr: 1, cursor: 'grab', touchAction: 'none', '&:focus,&:focus-visible': { outline: 'none' } }, ...dragAttrs, ...listeners, children: _jsx(DragIndicatorIcon, { fontSize: size === 'small' ? 'small' : 'medium' }) })) : undefined, size, content), !!col.editor && editable && !always && !isActive && (_jsx(IconButton, { size: "small", className: "cell-edit-btn", "aria-label": "Edit", onClick: (e) => { e.stopPropagation(); startEdit(row, col); }, sx: { position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', opacity: 0, transition: 'opacity 120ms' }, children: _jsx(EditOutlinedIcon, { fontSize: "small" }) }))] }, col.id));
-            }), getRowActions && !isCustomerView && (_jsx(TableCell, { align: "right", children: getRowActions(row) }, "__actions")), !isCustomerView && (_jsxs(_Fragment, { children: [_jsx(Box, { ref: setInsideRef, sx: { position: 'absolute', left: 0, right: 0, top: '33.333%', bottom: '33.333%', pointerEvents: activeId ? 'auto' : 'none', display: insideAllowed ? 'block' : 'none' } }), _jsx(DropEdgeOverlays, { rowId: draggableId, allowedBefore: !!activeId && beforeAllowed, allowedAfter: !!activeId && afterAllowed, isActiveDrag: !!activeId })] }))] }, String(row.id)));
+            }), getRowActions && showActionsColumn && (_jsx(TableCell, { align: "right", children: getRowActions(row) }, "__actions")), !readOnly && (_jsxs(_Fragment, { children: [_jsx(Box, { ref: setInsideRef, sx: { position: 'absolute', left: 0, right: 0, top: '33.333%', bottom: '33.333%', pointerEvents: activeId ? 'auto' : 'none', display: insideAllowed ? 'block' : 'none' } }), _jsx(DropEdgeOverlays, { rowId: draggableId, allowedBefore: !!activeId && beforeAllowed, allowedAfter: !!activeId && afterAllowed, isActiveDrag: !!activeId })] }))] }, String(row.id)));
 }

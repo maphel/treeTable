@@ -15,8 +15,12 @@ import DraggableRow from './internal/DraggableRow';
 import { buildRowIndexMap, buildVisibleRows, getVisibleColumns } from './internal/utils';
 import { useExpandedRows, useValidTargets } from './internal/hooks';
 export function TreeTable(props) {
+    var _a, _b;
     const { rows, columns, size = 'medium', expandedRowIds, onRowToggle, getRowActions, getRowCanDrag, getRowCanDrop, onDrop, getValidDropTargets, viewMode, actionsHeader, } = props;
-    const isCustomerView = viewMode === 'customer';
+    // Back-compat: treat 'customer' as read-only + hide actions by default; otherwise use provided overrides
+    const inferredCustomer = viewMode === 'customer';
+    const readOnly = (_a = props.readOnly) !== null && _a !== void 0 ? _a : (inferredCustomer ? true : false);
+    const showActionsColumn = (_b = props.showActionsColumn) !== null && _b !== void 0 ? _b : (inferredCustomer ? false : true);
     const { expanded, toggle } = useExpandedRows(expandedRowIds, onRowToggle);
     const visible = React.useMemo(() => {
         const out = [];
@@ -141,7 +145,7 @@ export function TreeTable(props) {
         setOverId(ev.over ? String(ev.over.id) : null);
     }, []);
     // Row rendering is extracted into internal/DraggableRow
-    return (_jsx(TableContainer, { children: _jsxs(DndContext, { sensors: sensors, collisionDetection: collisionDetection, onDragStart: handleDragStart, onDragEnd: handleDragEnd, onDragOver: handleDragOver, children: [_jsxs(Table, { size: size, role: "treegrid", "aria-readonly": isCustomerView || undefined, children: [_jsx(TableHead, { children: _jsxs(TableRow, { children: [visibleColumns.map((col) => (_jsx(TableCell, { align: col.align, style: { width: col.width }, children: col.header }, col.id))), getRowActions && !isCustomerView && (_jsx(TableCell, { align: "right", children: actionsHeader !== null && actionsHeader !== void 0 ? actionsHeader : 'Actions' }, "__actions"))] }) }), _jsx(TableBody, { children: visible.map((vr) => (_jsx(DraggableRow, { data: vr, visibleColumns: visibleColumns, size: size, isCustomerView: isCustomerView, getRowCanDrag: getRowCanDrag, getRowCanDrop: getRowCanDrop, validTargets: validTargets, overId: overId, activeId: activeId, byKey: byKey, toggle: toggle, viewMode: viewMode, getRowActions: getRowActions, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, autoClosedKeys: autoClosedKeys, markAutoClosed: markAutoClosed, startEdit: startEdit, onEditCommit: props.onEditCommit }, String(vr.row.id)))) })] }), _jsx(DragOverlay, { children: activeId ? (() => {
+    return (_jsx(TableContainer, { children: _jsxs(DndContext, { sensors: sensors, collisionDetection: collisionDetection, onDragStart: handleDragStart, onDragEnd: handleDragEnd, onDragOver: handleDragOver, children: [_jsxs(Table, { size: size, role: "treegrid", "aria-readonly": readOnly || undefined, children: [_jsx(TableHead, { children: _jsxs(TableRow, { children: [visibleColumns.map((col) => (_jsx(TableCell, { align: col.align, style: { width: col.width }, children: col.header }, col.id))), getRowActions && showActionsColumn && (_jsx(TableCell, { align: "right", children: actionsHeader !== null && actionsHeader !== void 0 ? actionsHeader : 'Actions' }, "__actions"))] }) }), _jsx(TableBody, { children: visible.map((vr) => (_jsx(DraggableRow, { data: vr, visibleColumns: visibleColumns, size: size, readOnly: readOnly, showActionsColumn: showActionsColumn, getRowCanDrag: getRowCanDrag, getRowCanDrop: getRowCanDrop, validTargets: validTargets, overId: overId, activeId: activeId, byKey: byKey, toggle: toggle, viewMode: viewMode, getRowActions: getRowActions, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, autoClosedKeys: autoClosedKeys, markAutoClosed: markAutoClosed, startEdit: startEdit, onEditCommit: props.onEditCommit }, String(vr.row.id)))) })] }), _jsx(DragOverlay, { children: activeId ? (() => {
                         var _a, _b, _c;
                         const activeRow = byKey.get(activeId);
                         if (!activeRow)

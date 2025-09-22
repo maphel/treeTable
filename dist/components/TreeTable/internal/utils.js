@@ -25,6 +25,6 @@ export function buildRowIndexMap(rows) {
     add(rows);
     return m;
 }
-export function getVisibleColumns(columns, viewMode) {
-    return (columns || []).filter((c) => (typeof c.getIsVisible === 'function' ? c.getIsVisible(viewMode) : true));
+export function getVisibleColumns(columns, viewContext) {
+    return (columns || []).filter((c) => (typeof c.getIsVisible === 'function' ? c.getIsVisible(viewContext) : true));
 }

@@ -5,7 +5,8 @@ export type DraggableRowProps<T extends object> = {
     data: VisibleRow<T>;
     visibleColumns: ColumnDef<T>[];
     size: 'small' | 'medium';
-    isCustomerView: boolean;
+    readOnly: boolean;
+    showActionsColumn: boolean;
     getRowCanDrag?: (row: RowModel<T>) => boolean;
     getRowCanDrop?: (source: RowModel<T>, target: RowModel<T>, position: 'inside' | 'before' | 'after') => boolean;
     validTargets: Set<RowId> | null;

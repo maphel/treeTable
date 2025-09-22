@@ -1,4 +1,4 @@
-import type { ColumnDef, RowId, RowModel, ViewMode } from '../types';
+import type { ColumnDef, RowId, RowModel } from '../types';
 import type { VisibleRow } from './types';
 
 export function toIdSet(ids?: Set<RowId> | RowId[]): Set<RowId> {
@@ -34,6 +34,6 @@ export function buildRowIndexMap<T extends object>(rows?: ReadonlyArray<RowModel
   return m;
 }
 
-export function getVisibleColumns<T extends object>(columns: ColumnDef<T>[], viewMode: ViewMode | undefined) {
-  return (columns || []).filter((c) => (typeof c.getIsVisible === 'function' ? c.getIsVisible(viewMode) : true));
+export function getVisibleColumns<T extends object>(columns: ColumnDef<T>[], viewContext: unknown) {
+  return (columns || []).filter((c) => (typeof c.getIsVisible === 'function' ? c.getIsVisible(viewContext) : true));
 }

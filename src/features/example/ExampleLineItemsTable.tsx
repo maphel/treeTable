@@ -1,9 +1,9 @@
 import * as React from 'react';
-import TreeTable from '../../components/TreeTable/TreeTable';
-import { ColumnDef, RowModel, RowId } from '../../components/TreeTable/types';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import FolderIcon from '@mui/icons-material/Folder';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import ExtensionIcon from '@mui/icons-material/Extension';
@@ -11,21 +11,28 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { LineItem, useGetLineItemsQuery, useMoveLineItemsMutation, useUpdateLineItemMutation, useDeleteLineItemsMutation, useDuplicateLineItemsMutation } from './api';
-import { TextEditor, CurrencyInput } from '../../components/editors';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import ToggleButton from '@mui/material/ToggleButton';
+
+import TreeTable from '../../components/TreeTable/TreeTable';
+import { ColumnDef, RowModel, RowId } from '../../components/TreeTable/types';
+import { CurrencyInput, NumberEditor, TextEditor } from '../../components/editors';
 import { formatCurrency, parseCurrency } from '../../components/formatters';
+import {
+  LineItem,
+  useDeleteLineItemsMutation,
+  useDuplicateLineItemsMutation,
+  useGetLineItemsQuery,
+  useMoveLineItemsMutation,
+  useUpdateLineItemMutation,
+} from './api';
 
 type RowData = {
   name: string;
   qty?: number;
   unitPrice?: number;
   draggable?: boolean;
-  // Optional permission-related flags (respected if provided)
-  permission?: boolean; // overall visibility for actions
-  configurationPermission?: boolean; // structural actions like duplicate/delete
-  propertyPermissions?: Partial<Record<'name' | 'quantity' | 'unitPrice', boolean>>; // editability per property
+  permission?: boolean;
+  configurationPermission?: boolean;
+  propertyPermissions?: Partial<Record<'name' | 'quantity' | 'unitPrice', boolean>>;
 };
 
 type ExampleRow = RowModel<RowData>;
@@ -39,21 +46,15 @@ function toRows(items: LineItem[] | undefined, depth = 0): ExampleRow[] {
     name: i.name,
     qty: i.quantity,
     unitPrice: i.unitPrice,
-    draggable: (i as any).draggable,
+    draggable: i.draggable,
     children: toRows(i.children, depth + 1),
   }));
 }
 
-export function ExampleLineItemsTable() {
-  const { data } = useGetLineItemsQuery(undefined);
-  const rows = React.useMemo(() => toRows(data), [data]);
-  const [moveLineItems] = useMoveLineItemsMutation();
-  const [updateLineItem] = useUpdateLineItemMutation();
-  const [deleteLineItems, { isLoading: isDeleting }] = useDeleteLineItemsMutation();
-  const [duplicateLineItems, { isLoading: isDuplicating }] = useDuplicateLineItemsMutation();
+type ExampleView = 'pro' | 'customer';
 
-  // View mode: 'pro' (default) vs 'customer'
-  const getInitialView = (): 'pro' | 'customer' => {
+function useViewMode(): [ExampleView, (next: ExampleView) => void] {
+  const readInitial = React.useCallback((): ExampleView => {
     try {
       const sp = new URLSearchParams(window.location.search);
       const v = sp.get('view');
@@ -61,45 +62,57 @@ export function ExampleLineItemsTable() {
     } catch {
       return 'pro';
     }
-  };
-  const [view, setView] = React.useState<'pro' | 'customer'>(getInitialView);
-  const isCustomer = view === 'customer';
+  }, []);
 
-  // Keep URL query param in sync
+  const [view, setView] = React.useState<ExampleView>(readInitial);
+
   React.useEffect(() => {
     try {
       const url = new URL(window.location.href);
-      if (view === 'pro') {
-        url.searchParams.delete('view');
-      } else {
-        url.searchParams.set('view', view);
-      }
+      if (view === 'pro') url.searchParams.delete('view');
+      else url.searchParams.set('view', view);
       window.history.replaceState({}, '', url.toString());
     } catch {}
   }, [view]);
 
-  // Controls inline name edit when pressing the Edit action
-  const [editingNameRowId, setEditingNameRowId] = React.useState<RowId | null>(null);
+  return [view, setView];
+}
 
+function TypeIcon({ type }: { type: string }) {
+  if (type === 'folder') return <FolderIcon fontSize="small" color="action" />;
+  if (type === 'product') return <Inventory2Icon fontSize="small" color="action" />;
+  if (type === 'subproduct') return <ExtensionIcon fontSize="small" color="action" />;
+  return <DescriptionIcon fontSize="small" color="action" />;
+}
+
+function buildMoveIndex(nodes: ExampleRow[]) {
+  const parentOf = new Map<RowId, RowId | null>();
+  const childrenOf = new Map<RowId | null, RowId[]>();
+  const walk = (list: ExampleRow[], parent: RowId | null) => {
+    childrenOf.set(parent, list.map((n) => n.id));
+    for (const n of list) {
+      parentOf.set(n.id, parent);
+      walk(n.children || [], n.id);
+    }
+  };
+  walk(nodes, null);
+  return { parentOf, childrenOf } as const;
+}
+
+function buildColumns(
+  editingNameRowId: RowId | null,
+  setEditingNameRowId: React.Dispatch<React.SetStateAction<RowId | null>>
+): ColumnDef<RowData>[] {
   const CurrencyEditor: ColumnDef<RowData>['editor'] = ({ value, onChange, commit, cancel, autoFocus }) => (
-    <CurrencyInput
-      value={value as any}
-      onChange={(s) => onChange(s)}
-      onCommit={commit}
-      onCancel={cancel}
-      autoFocus={autoFocus}
-      locale="de-DE"
-      currency="EUR"
-    />
+    <CurrencyInput value={value as any} onChange={(s) => onChange(s)} onCommit={commit} onCancel={cancel} autoFocus={autoFocus} locale="de-DE" currency="EUR" />
   );
 
-  const columns: ColumnDef<RowData>[] = [
+  return [
     {
       id: 'name',
       header: 'Name',
       width: '40%',
       getIsEditable: (row) => row.type === 'custom' && (row.propertyPermissions?.name ?? true),
-      // When a row is marked for editing via the Edit action, start editor unlocked
       editMode: (row) => (row.id === editingNameRowId ? 'unlocked' : undefined),
       autoCommitOnChange: (row) => row.id === editingNameRowId,
       editor: (p) => (
@@ -117,13 +130,8 @@ export function ExampleLineItemsTable() {
       ),
       cell: ({ row, value }) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {row.type === 'folder' && <FolderIcon fontSize="small" color="action" />}
-          {row.type === 'product' && <Inventory2Icon fontSize="small" color="action" />}
-          {row.type === 'subproduct' && <ExtensionIcon fontSize="small" color="action" />}
-          {row.type === 'custom' && <DescriptionIcon fontSize="small" color="action" />}
-          <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {String(value ?? '')}
-          </Box>
+          <TypeIcon type={row.type} />
+          <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(value ?? '')}</Box>
         </Box>
       ),
     },
@@ -134,13 +142,7 @@ export function ExampleLineItemsTable() {
       width: 120,
       getIsEditable: (row) => row.type !== 'folder' && (row.propertyPermissions?.quantity ?? true),
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
-        <TextEditor
-          value={typeof value === 'number' ? String(value) : (value ?? '')}
-          onChange={(next) => onChange(parseFloat(String(next)))}
-          onCommit={commit}
-          onCancel={cancel}
-          autoFocus={autoFocus}
-        />
+        <NumberEditor value={typeof value === 'number' ? value : undefined} onChange={onChange} onCommit={commit} onCancel={cancel} autoFocus={autoFocus} step={1} min={0} />
       ),
       valueFormatter: (v) => (typeof v === 'number' ? String(v) : ''),
     },
@@ -156,34 +158,98 @@ export function ExampleLineItemsTable() {
       valueFormatter: (v) => formatCurrency(typeof v === 'number' ? v : undefined),
     },
   ];
+}
 
-  function getRowCanDrag(row: ExampleRow) {
+function RowActions({
+  row,
+  isDuplicating,
+  isDeleting,
+  onEdit,
+  onDuplicate,
+  onDelete,
+}: {
+  row: ExampleRow;
+  isDuplicating: boolean;
+  isDeleting: boolean;
+  onEdit: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+}) {
+  const allowed = row.permission ?? true;
+  const configAllowed = row.configurationPermission ?? true;
+  if (!allowed || row.type === 'subproduct') return null;
+
+  const canEditName = row.type === 'custom' && (row.propertyPermissions?.name ?? true);
+  const showEdit = row.type === 'custom' || row.type === 'product';
+  const editDisabled = row.type !== 'custom' || !canEditName;
+
+  const showDuplicate = row.type === 'product' || row.type === 'custom';
+  const duplicateDisabled = !configAllowed;
+
+  const showDelete = row.type === 'folder' || row.type === 'product' || row.type === 'custom';
+  const deleteDisabled = !configAllowed;
+
+  return (
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+      {showEdit && (
+        <Tooltip title={editDisabled ? 'Bearbeiten nicht möglich' : 'Bearbeiten'}>
+          <span>
+            <IconButton size="small" disabled={editDisabled} onClick={(e) => { e.stopPropagation(); if (!editDisabled) onEdit(); }}>
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      )}
+      {showDuplicate && (
+        <Tooltip title={duplicateDisabled ? 'Duplizieren nicht erlaubt' : 'Duplizieren'}>
+          <span>
+            <IconButton size="small" disabled={duplicateDisabled || isDuplicating} onClick={(e) => { e.stopPropagation(); onDuplicate(); }}>
+              <ContentCopyIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      )}
+      {showDelete && (
+        <Tooltip title={deleteDisabled ? 'Löschen nicht erlaubt' : 'Löschen'}>
+          <span>
+            <IconButton size="small" disabled={deleteDisabled || isDeleting} onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      )}
+    </Box>
+  );
+}
+
+export function ExampleLineItemsTable() {
+  const { data } = useGetLineItemsQuery(undefined);
+  const rows = React.useMemo(() => toRows(data), [data]);
+
+  const [moveLineItems] = useMoveLineItemsMutation();
+  const [updateLineItem] = useUpdateLineItemMutation();
+  const [deleteLineItems, { isLoading: isDeleting }] = useDeleteLineItemsMutation();
+  const [duplicateLineItems, { isLoading: isDuplicating }] = useDuplicateLineItemsMutation();
+
+  const [view, setView] = useViewMode();
+  const isCustomer = view === 'customer';
+
+  const [editingNameRowId, setEditingNameRowId] = React.useState<RowId | null>(null);
+  const columns = React.useMemo(() => buildColumns(editingNameRowId, setEditingNameRowId), [editingNameRowId]);
+
+  const getRowCanDrag = React.useCallback((row: ExampleRow) => {
     if (row.draggable === false) return false;
     return row.type !== 'subproduct';
-  }
+  }, []);
 
-  function getRowCanDrop(source: ExampleRow, target: ExampleRow, position: 'inside' | 'before' | 'after') {
+  const getRowCanDrop = React.useCallback((source: ExampleRow, target: ExampleRow, position: 'inside' | 'before' | 'after') => {
     if (String(source.id) === String(target.id)) return false;
     if (position === 'inside' && target.type !== 'folder') return false;
     return true;
-  }
+  }, []);
 
-  function indexTree(nodes: ExampleRow[]) {
-    const parentOf = new Map<RowId, RowId | null>();
-    const childrenOf = new Map<RowId | null, RowId[]>();
-    function walk(list: ExampleRow[], parent: RowId | null) {
-      childrenOf.set(parent, list.map(n => n.id));
-      for (const n of list) {
-        parentOf.set(n.id, parent);
-        walk(n.children || [], n.id);
-      }
-    }
-    walk(nodes, null);
-    return { parentOf, childrenOf } as const;
-  }
-
-  const handleDrop = async (sourceId: RowId, targetId: RowId, position: 'inside' | 'before' | 'after') => {
-    const { parentOf, childrenOf } = indexTree(rows);
+  const handleDrop = React.useCallback(async (sourceId: RowId, targetId: RowId, position: 'inside' | 'before' | 'after') => {
+    const { parentOf, childrenOf } = buildMoveIndex(rows);
     let parentLineItemId: RowId | null = null;
     let previousLineItem: 'FIRST' | 'LAST' | { lineItemId: RowId } = 'LAST';
 
@@ -193,35 +259,25 @@ export function ExampleLineItemsTable() {
     } else {
       const parent = parentOf.get(targetId) ?? null;
       parentLineItemId = parent;
-      const siblings = (childrenOf.get(parent) || []).filter(id => id !== sourceId);
+      const siblings = (childrenOf.get(parent) || []).filter((id) => id !== sourceId);
       const idx = siblings.indexOf(targetId);
       if (position === 'before') {
-        if (idx <= 0) previousLineItem = 'FIRST';
-        else previousLineItem = { lineItemId: siblings[idx - 1] };
+        previousLineItem = idx <= 0 ? 'FIRST' : { lineItemId: siblings[idx - 1] };
       } else {
-        // After target -> place before its next sibling by using target as previous
         previousLineItem = { lineItemId: targetId };
       }
     }
 
-    await moveLineItems({
-      selectedLineItemIds: [sourceId],
-      parentLineItemId,
-      previousLineItem,
-    });
-  };
+    await moveLineItems({ selectedLineItemIds: [sourceId], parentLineItemId, previousLineItem });
+  }, [rows, moveLineItems]);
+
+  const COLUMN_PROP_MAP: Record<string, string> = React.useMemo(() => ({ qty: 'quantity', name: 'name', unitPrice: 'unitPrice' }), []);
 
   return (
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
         <Box sx={{ fontWeight: 600, color: 'text.secondary' }}>Ansicht</Box>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={view}
-          onChange={(_, next) => { if (next) setView(next); }}
-          aria-label="Ansicht wählen"
-        >
+        <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, next) => { if (next) setView(next); }} aria-label="Ansicht wählen">
           <ToggleButton value="pro" aria-label="Pro-Ansicht">Pro</ToggleButton>
           <ToggleButton value="customer" aria-label="Kundenansicht">Kunde</ToggleButton>
         </ToggleButtonGroup>
@@ -232,82 +288,23 @@ export function ExampleLineItemsTable() {
         rows={rows}
         columns={columns}
         viewMode={view}
+        actionsHeader="Aktionen"
         onEditCommit={async (row, column, next) => {
           const lineItemId = row.id;
-          const prop = column.id === 'qty' ? 'quantity' : column.id;
+          const prop = COLUMN_PROP_MAP[column.id] ?? column.id;
           await updateLineItem({ lineItemId, properties: { [prop]: next } });
-          // Close forced name editor after commit
           setEditingNameRowId((curr) => (curr === row.id ? null : curr));
         }}
-        getRowActions={!isCustomer ? ((row) => {
-          const hasPermission = row.permission ?? true;
-          const hasConfigPermission = row.configurationPermission ?? true;
-
-          if (!hasPermission || row.type === 'subproduct') return null;
-
-          const canEditName = row.type === 'custom' && (row.propertyPermissions?.name ?? true);
-          const showEdit = row.type === 'custom' || row.type === 'product';
-          const editDisabled = row.type !== 'custom' || !canEditName;
-
-          const showDuplicate = row.type === 'product' || row.type === 'custom';
-          const duplicateDisabled = !hasConfigPermission;
-
-          const showDelete = row.type === 'folder' || row.type === 'product' || row.type === 'custom';
-          const deleteDisabled = !hasConfigPermission;
-
-          return (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
-              {showEdit && (
-                <Tooltip title={editDisabled ? 'Bearbeiten nicht möglich' : 'Bearbeiten'}>
-                  <span>
-                    <IconButton
-                      size="small"
-                      disabled={editDisabled}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!editDisabled) setEditingNameRowId(row.id);
-                      }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              )}
-              {showDuplicate && (
-                <Tooltip title={duplicateDisabled ? 'Duplizieren nicht erlaubt' : 'Duplizieren'}>
-                  <span>
-                    <IconButton
-                      size="small"
-                      disabled={duplicateDisabled || isDuplicating}
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        await duplicateLineItems({ selectedLineItemIds: [row.id] });
-                      }}
-                    >
-                      <ContentCopyIcon fontSize="small" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              )}
-              {showDelete && (
-                <Tooltip title={deleteDisabled ? 'Löschen nicht erlaubt' : 'Löschen'}>
-                  <span>
-                    <IconButton
-                      size="small"
-                      disabled={deleteDisabled || isDeleting}
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        await deleteLineItems({ selectedLineItemIds: [row.id] });
-                      }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              )}
-            </Box>
-          );
-        }) : undefined}
+        getRowActions={!isCustomer ? ((row) => (
+          <RowActions
+            row={row as any}
+            isDuplicating={isDuplicating}
+            isDeleting={isDeleting}
+            onEdit={() => setEditingNameRowId(row.id)}
+            onDuplicate={async () => { await duplicateLineItems({ selectedLineItemIds: [row.id] }); }}
+            onDelete={async () => { await deleteLineItems({ selectedLineItemIds: [row.id] }); }}
+          />
+        )) : undefined}
         getRowCanDrag={!isCustomer ? getRowCanDrag : undefined}
         getRowCanDrop={!isCustomer ? getRowCanDrop : undefined}
         onDrop={!isCustomer ? handleDrop : undefined}
@@ -317,4 +314,3 @@ export function ExampleLineItemsTable() {
 }
 
 export default ExampleLineItemsTable;
-

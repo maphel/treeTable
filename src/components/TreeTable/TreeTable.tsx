@@ -31,8 +31,10 @@ export function TreeTable<T extends object = {}>(props: TreeTableProps<T>) {
     viewMode,
     actionsHeader,
   } = props;
-
-  const isCustomerView = viewMode === 'customer';
+  // Back-compat: treat 'customer' as read-only + hide actions by default; otherwise use provided overrides
+  const inferredCustomer = viewMode === 'customer';
+  const readOnly = props.readOnly ?? (inferredCustomer ? true : false);
+  const showActionsColumn = props.showActionsColumn ?? (inferredCustomer ? false : true);
 
   const { expanded, toggle } = useExpandedRows(expandedRowIds, onRowToggle);
 
@@ -177,13 +179,13 @@ export function TreeTable<T extends object = {}>(props: TreeTableProps<T>) {
         onDragEnd={handleDragEnd}
         onDragOver={handleDragOver}
       >
-        <Table size={size} role="treegrid" aria-readonly={isCustomerView || undefined}>
+        <Table size={size} role="treegrid" aria-readonly={readOnly || undefined}>
           <TableHead>
             <TableRow>
               {visibleColumns.map((col) => (
                 <TableCell key={col.id} align={col.align} style={{ width: col.width }}>{col.header}</TableCell>
               ))}
-              {getRowActions && !isCustomerView && (
+              {getRowActions && showActionsColumn && (
                 <TableCell key="__actions" align="right">{actionsHeader ?? 'Actions'}</TableCell>
               )}
             </TableRow>
@@ -195,7 +197,8 @@ export function TreeTable<T extends object = {}>(props: TreeTableProps<T>) {
                 data={vr}
                 visibleColumns={visibleColumns}
                 size={size}
-                isCustomerView={isCustomerView}
+                readOnly={readOnly}
+                showActionsColumn={showActionsColumn}
                 getRowCanDrag={getRowCanDrag}
                 getRowCanDrop={getRowCanDrop}
                 validTargets={validTargets}
