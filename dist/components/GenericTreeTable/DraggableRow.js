@@ -1,13 +1,14 @@
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { DragIndicator as DragIndicatorIcon, EditOutlined as EditOutlinedIcon } from "@mui/icons-material";
+import { DragIndicator as DragIndicatorIcon } from "@mui/icons-material";
 import { Box, IconButton, TableCell, TableRow } from "@mui/material";
 import React, { useCallback, useEffect, useMemo } from "react";
 import DropEdgeOverlays from "./DropEdgeOverlays.js";
 import EditorCell from "./EditorCell.js";
 import IndentedCell from "./IndentedCell.js";
 import ViewCell from "./ViewCell.js";
+// No custom cursor: keep system default
 function DraggableRowInner(props) {
     const { data, visibleColumns, size, readOnly, getRowCanDrag, getRowCanDrop, validTargets, activeId, byKey, toggle, viewMode, getRowActions, editingKey, editingValue, setEditingKey, setEditingValue, autoClosedKeys, markAutoClosed, clearAutoClosedForRow, startEdit, onEditCommit, onRowAllEditorsClosed } = props;
     const { row, level, hasChildren, expanded: isExpanded } = data;
@@ -154,15 +155,16 @@ function DraggableRowInner(props) {
                 const initiallyUnlockedActive = mode === "unlocked" && (!autoClosedKeys.has(key) || isUnlockTransition);
                 const always = mode === "locked";
                 const isActive = always || editingKey === key || initiallyUnlockedActive;
-                const content = isActive ? (_jsx(EditorCell, { row: row, col: col, mode: mode, cellKey: key, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, markAutoClosed: markAutoClosed, onEditCommit: onEditCommit })) : (_jsx(ViewCell, { row: row, col: col, level: level }));
-                return (_jsxs(TableCell, { align: col.align, style: { width: col.width, position: "relative" }, sx: !!col.editor && editable && !always && !isActive
-                        ? {
-                            "&:hover .cell-edit-btn": { opacity: 1 }
-                        }
-                        : undefined, onDoubleClick: () => {
-                        if (!always && editable)
+                const content = isActive ? (_jsx(EditorCell, { row: row, col: col, mode: mode, cellKey: key, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, markAutoClosed: markAutoClosed, onEditCommit: onEditCommit })) : (
+                // Wrap view content to enable click-to-edit; show pointer when editable
+                _jsx(Box, { onMouseDown: (e) => {
+                        // Start edit early in the pointer sequence to avoid blur race
+                        if (!always && editable) {
+                            e.preventDefault();
                             startEdit(row, col);
-                    }, children: [IndentedCell(row, col, level, idx === 0, hasChildren, isExpanded, hasChildren ? () => toggle(row.id) : undefined, idx === 0 && canDrag ? (_jsx(IconButton, { size: size === "small" ? "small" : "medium", disableRipple: true, disableFocusRipple: true, sx: {
+                        }
+                    }, sx: !!col.editor && editable && !always ? { '&:hover': { cursor: 'pointer' } } : undefined, children: _jsx(ViewCell, { row: row, col: col, level: level }) }));
+                return (_jsxs(TableCell, { align: col.align, style: { width: col.width, position: "relative" }, sx: undefined, children: [IndentedCell(row, col, level, idx === 0, hasChildren, isExpanded, hasChildren ? () => toggle(row.id) : undefined, idx === 0 && canDrag ? (_jsx(IconButton, { size: size === "small" ? "small" : "medium", disableRipple: true, disableFocusRipple: true, sx: {
                                 mr: 0.5,
                                 cursor: "grab",
                                 touchAction: "none",
@@ -188,17 +190,7 @@ function DraggableRowInner(props) {
                                         pointerEvents: "none",
                                         backgroundColor: theme.palette.primary.light,
                                         zIndex: 1
-                                    }) })), _jsx(DropEdgeOverlays, { rowId: draggableId, allowedBefore: !!activeId && beforeAllowed, allowedAfter: !!activeId && afterAllowed, isActiveDrag: !!activeId })] })), !!col.editor && editable && !always && !isActive && (_jsx(IconButton, { size: "small", className: "cell-edit-btn", "aria-label": "Edit", onClick: (e) => {
-                                e.stopPropagation();
-                                startEdit(row, col);
-                            }, sx: {
-                                position: "absolute",
-                                right: 6,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                opacity: 0,
-                                transition: "opacity 120ms"
-                            }, children: _jsx(EditOutlinedIcon, { fontSize: "small" }) }))] }, col.id));
+                                    }) })), _jsx(DropEdgeOverlays, { rowId: draggableId, allowedBefore: !!activeId && beforeAllowed, allowedAfter: !!activeId && afterAllowed, isActiveDrag: !!activeId })] }))] }, col.id));
             }), getRowActions && (_jsx(TableCell, { align: "right", children: getRowActions(row) }, "__actions"))] }, String(row.id)));
 }
 const DraggableRow = React.memo(DraggableRowInner);

@@ -65,8 +65,12 @@ export default function EditorCell<T extends object>({
             try {
                 await onEditCommit?.(row, col, parsed)
                 if (!always) {
-                    setEditingKey(null)
-                    setEditingValue(undefined)
+                    // Only clear editing state if this cell is still the active one.
+                    setEditingKey((prev: string | null) => {
+                        const shouldClear = prev === key
+                        if (shouldClear) setEditingValue(undefined)
+                        return shouldClear ? null : prev
+                    })
                 }
                 if (mode === "unlocked") {
                     markAutoClosed(key)
@@ -94,8 +98,12 @@ export default function EditorCell<T extends object>({
 
     const cancel = useCallback(() => {
         if (!always) {
-            setEditingKey(null)
-            setEditingValue(undefined)
+            // Only clear if we are still the active editor
+            setEditingKey((prev: string | null) => {
+                const shouldClear = prev === key
+                if (shouldClear) setEditingValue(undefined)
+                return shouldClear ? null : prev
+            })
         } else {
             setVal(raw)
         }

@@ -1,9 +1,6 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
-import {
-    DragIndicator as DragIndicatorIcon,
-    EditOutlined as EditOutlinedIcon
-} from "@mui/icons-material"
+import { DragIndicator as DragIndicatorIcon } from "@mui/icons-material"
 import { Box, IconButton, TableCell, TableRow } from "@mui/material"
 import React, {
     type CSSProperties,
@@ -58,6 +55,8 @@ export type DraggableRowProps<T extends object> = {
     ) => Promise<void> | void
     onRowAllEditorsClosed?: (row: RowModel<T>) => void
 }
+
+// No custom cursor: keep system default
 
 function DraggableRowInner<T extends object>(
     props: DraggableRowProps<T>
@@ -271,7 +270,19 @@ function DraggableRowInner<T extends object>(
                         onEditCommit={onEditCommit}
                     />
                 ) : (
-                    <ViewCell row={row} col={col} level={level} />
+                    // Wrap view content to enable click-to-edit; show pointer when editable
+                    <Box
+                        onMouseDown={(e) => {
+                            // Start edit early in the pointer sequence to avoid blur race
+                            if (!always && editable) {
+                                e.preventDefault();
+                                startEdit(row, col)
+                            }
+                        }}
+                        sx={!!col.editor && editable && !always ? { '&:hover': { cursor: 'pointer' } } : undefined}
+                    >
+                        <ViewCell row={row} col={col} level={level} />
+                    </Box>
                 )
 
                 return (
@@ -279,16 +290,7 @@ function DraggableRowInner<T extends object>(
                         key={col.id}
                         align={col.align}
                         style={{ width: col.width, position: "relative"  }}
-                        sx={
-                            !!col.editor && editable && !always && !isActive
-                                ? {
-                                      "&:hover .cell-edit-btn": { opacity: 1 }
-                                  }
-                                : undefined
-                        }
-                        onDoubleClick={() => {
-                            if (!always && editable) startEdit(row, col)
-                        }}
+                        sx={undefined}
                     >
                         {IndentedCell(
                             row,
@@ -363,27 +365,7 @@ function DraggableRowInner<T extends object>(
                                 />
                             </>
                         )}
-                        {!!col.editor && editable && !always && !isActive && (
-                            <IconButton
-                                size="small"
-                                className="cell-edit-btn"
-                                aria-label="Edit"
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    startEdit(row, col)
-                                }}
-                                sx={{
-                                    position: "absolute",
-                                    right: 6,
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    opacity: 0,
-                                    transition: "opacity 120ms"
-                                }}
-                            >
-                                <EditOutlinedIcon fontSize="small" />
-                            </IconButton>
-                        )}
+                        {/* Removed pencil edit button in favor of click-to-edit */}
                     </TableCell>
                 )
             })}
