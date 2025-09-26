@@ -98,9 +98,12 @@ function DraggableRowInner(props) {
     }, [row, viewMode, isEditable]);
     const anyUnlocked = useMemo(() => visibleColumns.some((c) => isEditable(c) && resolveEditMode(c) === "unlocked"), [visibleColumns, isEditable, resolveEditMode]);
     const prevUnlockedRef = React.useRef(false);
+    const suppressAllClosedRef = React.useRef(false);
     useEffect(() => {
         if (!prevUnlockedRef.current && anyUnlocked) {
             clearAutoClosedForRow(String(row.id));
+            // Prevent immediate re-close: skip one all-closed check right after unlocking
+            suppressAllClosedRef.current = true;
         }
         prevUnlockedRef.current = anyUnlocked;
     }, [anyUnlocked, clearAutoClosedForRow, row.id]);
@@ -108,6 +111,11 @@ function DraggableRowInner(props) {
     useEffect(() => {
         if (!anyUnlocked) {
             allClosedNotifiedRef.current = false;
+            return;
+        }
+        if (suppressAllClosedRef.current) {
+            // Skip this evaluation once, right after unlocking
+            suppressAllClosedRef.current = false;
             return;
         }
         const unlockedKeys = visibleColumns

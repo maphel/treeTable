@@ -185,9 +185,11 @@ function DraggableRowInner<T extends object>(
         [visibleColumns, isEditable, resolveEditMode]
     )
     const prevUnlockedRef = React.useRef(false)
+    const suppressAllClosedRef = React.useRef(false)
     useEffect(() => {
         if (!prevUnlockedRef.current && anyUnlocked) {
             clearAutoClosedForRow(String(row.id))
+            suppressAllClosedRef.current = true
         }
         prevUnlockedRef.current = anyUnlocked
     }, [anyUnlocked, clearAutoClosedForRow, row.id])
@@ -196,6 +198,10 @@ function DraggableRowInner<T extends object>(
     useEffect(() => {
         if (!anyUnlocked) {
             allClosedNotifiedRef.current = false
+            return
+        }
+        if (suppressAllClosedRef.current) {
+            suppressAllClosedRef.current = false
             return
         }
         const unlockedKeys = visibleColumns
@@ -270,10 +276,8 @@ function DraggableRowInner<T extends object>(
                         onEditCommit={onEditCommit}
                     />
                 ) : (
-                    // Wrap view content to enable click-to-edit; show pointer when editable
                     <Box
                         onMouseDown={(e) => {
-                            // Start edit early in the pointer sequence to avoid blur race
                             if (!always && editable) {
                                 e.preventDefault();
                                 startEdit(row, col)
@@ -365,7 +369,6 @@ function DraggableRowInner<T extends object>(
                                 />
                             </>
                         )}
-                        {/* Removed pencil edit button in favor of click-to-edit */}
                     </TableCell>
                 )
             })}
