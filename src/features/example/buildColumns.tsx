@@ -5,7 +5,7 @@ import Inventory2Icon from '@mui/icons-material/Inventory2';
 import ExtensionIcon from '@mui/icons-material/Extension';
 import DescriptionIcon from '@mui/icons-material/Description';
 
-import type { ColumnDef } from '../../components/GenericTreeTable/genericTreeTable.types';
+import type { ColumnDef, RowModel } from '../../components/GenericTreeTable/genericTreeTable.types';
 import TextEditor from '../../components/editors/TextEditor';
 import NumberEditor from '../../components/editors/NumberEditor';
 import PercentageEditor from '../../components/editors/PercentageEditor';
@@ -76,7 +76,15 @@ export function buildColumns(
       width: 120,
       getIsEditable: (row) => row.type !== 'folder' && (row.propertyPermissions?.quantity ?? true),
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
-        <NumberEditor value={typeof value === 'number' ? value : undefined} onChange={onChange} onCommit={commit} onCancel={cancel} autoFocus={autoFocus} step={1} min={0} />
+        <NumberEditor
+          value={typeof value === 'number' ? value : undefined}
+          onChange={onChange}
+          onCommit={commit}
+          onCancel={cancel}
+          autoFocus={autoFocus}
+          step={1}
+          min={0}
+        />
       ),
       valueFormatter: (v) => (typeof v === 'number' ? String(v) : ''),
     },
@@ -98,6 +106,8 @@ export function buildColumns(
           currency={currency}
            />
       ),
+      // Ensure live currency string is parsed back to a number
+      valueParser: (input) => parseCurrency(input, currencyOptions),
       valueFormatter: (v) => formatCurrency(typeof v === 'number' ? v : undefined, currencyOptions),
     },
     {
@@ -106,6 +116,7 @@ export function buildColumns(
       align: 'right',
       width: 120,
       getIsEditable: (row) => row.type !== 'folder',
+      getIsVisible: (vm) => vm !== 'customer',
       // Use the PercentageEditor; it emits fractions (0.15 for 15%)
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
         <PercentageEditor
@@ -128,18 +139,39 @@ export function buildColumns(
   ];
 
   if (includeTotals) {
+    const calcLineTotal = (r: RowModel<RowData>): number => {
+      // base line total for non-folders
+      if (r.type !== 'folder') {
+        const q = (r as any).qty as number | undefined;
+        const p = (r as any).unitPrice as number | undefined;
+        if (typeof q === 'number' && typeof p === 'number') {
+          const disc = typeof (r as any).discount === 'number' ? (r as any).discount : 0;
+          const factor = Math.max(0, Math.min(100, disc));
+          return q * p * (1 - factor / 100);
+        }
+        return 0;
+      }
+      return 0;
+    };
+
+    const sumRecursive = (r: RowModel<RowData>): number => {
+      if (r.type === 'folder') {
+        return (r.children || []).reduce((acc: number, c: RowModel<RowData>) => acc + sumRecursive(c), 0);
+      }
+      return calcLineTotal(r);
+    };
+
     cols.push({
       id: 'total',
       header: 'Summe',
       align: 'right',
-      width: 140,
-      getIsVisible: (vm) => vm !== 'customer',
+      width: 160,
+      // Show totals to both pro and customer views
       cell: ({ row }) => {
-        const q = (row as any).qty as number | undefined;
-        const p = (row as any).unitPrice as number | undefined;
-        if (row.type === 'folder' || row.type === 'subproduct') return '';
-        if (typeof q !== 'number' || typeof p !== 'number') return '';
-        return formatCurrency(q * p, currencyOptions);
+        // For folders, show aggregated sum of descendants.
+        const total = row.type === 'folder' ? sumRecursive(row) : calcLineTotal(row);
+        if (!total) return '';
+        return formatCurrency(total, currencyOptions);
       },
     });
   }

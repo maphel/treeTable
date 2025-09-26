@@ -8,7 +8,6 @@ export type DraggableRowProps<T extends object> = {
     getRowCanDrag?: (row: RowModel<T>) => boolean;
     getRowCanDrop?: (source: RowModel<T>, target: RowModel<T>, position: "inside" | "before" | "after") => boolean;
     validTargets: Set<string> | null;
-    overId: string | null;
     activeId: string | null;
     byKey: Map<string, RowModel<T>>;
     toggle: (id: string) => void;
@@ -23,4 +22,6 @@ export type DraggableRowProps<T extends object> = {
     startEdit: (row: RowModel<T>, column: ColumnDef<T>) => void;
     onEditCommit?: (row: RowModel<T>, column: ColumnDef<T>, next: unknown) => Promise<void> | void;
 };
-export default function DraggableRow<T extends object>(props: DraggableRowProps<T>): import("react/jsx-runtime").JSX.Element;
+declare function DraggableRowInner<T extends object>(props: DraggableRowProps<T>): import("react/jsx-runtime").JSX.Element;
+declare const DraggableRow: typeof DraggableRowInner;
+export default DraggableRow;

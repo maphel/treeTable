@@ -3,13 +3,13 @@ import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { DragIndicator as DragIndicatorIcon, EditOutlined as EditOutlinedIcon } from "@mui/icons-material";
 import { Box, IconButton, TableCell, TableRow } from "@mui/material";
-import { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import DropEdgeOverlays from "./DropEdgeOverlays.js";
 import EditorCell from "./EditorCell.js";
 import IndentedCell from "./IndentedCell.js";
 import ViewCell from "./ViewCell.js";
-export default function DraggableRow(props) {
-    const { data, visibleColumns, size, readOnly, getRowCanDrag, getRowCanDrop, validTargets, overId, activeId, byKey, toggle, viewMode, getRowActions, editingKey, editingValue, setEditingKey, setEditingValue, autoClosedKeys, markAutoClosed, startEdit, onEditCommit } = props;
+function DraggableRowInner(props) {
+    const { data, visibleColumns, size, readOnly, getRowCanDrag, getRowCanDrop, validTargets, activeId, byKey, toggle, viewMode, getRowActions, editingKey, editingValue, setEditingKey, setEditingValue, autoClosedKeys, markAutoClosed, startEdit, onEditCommit } = props;
     const { row, level, hasChildren, expanded: isExpanded } = data;
     const draggableId = String(row.id);
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: draggableId });
@@ -23,7 +23,8 @@ export default function DraggableRow(props) {
         transform: isDragging ? undefined : CSS.Translate.toString(transform),
         opacity: isDragging ? 0.5 : 1,
         zIndex: isDragging ? 1 : undefined,
-        position: "relative"
+        position: "relative",
+        willChange: "transform"
     };
     const insideAllowed = useMemo(() => {
         if (!activeId)
@@ -115,32 +116,9 @@ export default function DraggableRow(props) {
             }
         }
     };
-    return (_jsxs(TableRow, { hover: true, ref: setNodeRef, style: style, tabIndex: 0, "aria-level": level + 1, "aria-expanded": hasChildren ? isExpanded : undefined, onKeyDown: handleRowKeyDown, sx: (theme) => {
-            const color = theme.palette.primary.light;
-            const isBeforeOverRow = !!activeId &&
-                beforeAllowed &&
-                overId === `before:${draggableId}`;
-            const isAfterOverRow = !!activeId &&
-                afterAllowed &&
-                overId === `after:${draggableId}`;
-            const isInsideOverRow = !!activeId &&
-                insideAllowed &&
-                overId === `inside:${draggableId}`;
-            const base = {
-                position: "relative",
-                transition: "background-color 120ms, background-image 120ms"
-            };
-            if (isInsideOverRow) {
-                base.backgroundColor = color;
-                base.backgroundImage = "none";
-            }
-            else if (isBeforeOverRow) {
-                base.background = `linear-gradient(to bottom, ${color} 0%, ${color} 20%, transparent 20%, transparent 100%)`;
-            }
-            else if (isAfterOverRow) {
-                base.backgroundImage = `linear-gradient(to bottom, transparent 0%, transparent 80%, ${color} 80%, ${color} 100%)`;
-            }
-            return base;
+    return (_jsxs(TableRow, { hover: true, ref: setNodeRef, style: style, tabIndex: 0, "aria-level": level + 1, "aria-expanded": hasChildren ? isExpanded : undefined, onKeyDown: handleRowKeyDown, sx: {
+            position: "relative",
+            transition: "background-color 120ms, background-image 120ms"
         }, children: [visibleColumns.map((col, idx) => {
                 const key = `${String(row.id)}::${col.id}`;
                 const editable = isEditable(col);
@@ -184,5 +162,16 @@ export default function DraggableRow(props) {
                             bottom: "33.333%",
                             pointerEvents: activeId ? "auto" : "none",
                             display: insideAllowed ? "block" : "none"
-                        } }), _jsx(DropEdgeOverlays, { rowId: draggableId, allowedBefore: !!activeId && beforeAllowed, allowedAfter: !!activeId && afterAllowed, isActiveDrag: !!activeId })] }))] }, String(row.id)));
+                        } }), activeId && insideAllowed && isInsideOver && (_jsx(Box, { sx: (theme) => ({
+                            position: "absolute",
+                            left: 0,
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                            pointerEvents: "none",
+                            backgroundColor: theme.palette.primary.light,
+                            zIndex: 1
+                        }) })), _jsx(DropEdgeOverlays, { rowId: draggableId, allowedBefore: !!activeId && beforeAllowed, allowedAfter: !!activeId && afterAllowed, isActiveDrag: !!activeId })] }))] }, String(row.id)));
 }
+const DraggableRow = React.memo(DraggableRowInner);
+export default DraggableRow;

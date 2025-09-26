@@ -98,7 +98,10 @@ export function ExampleLineItemsTable() {
   const isCustomer = view === 'customer';
 
   const [editingNameRowId, setEditingNameRowId] = React.useState<string | null>(null);
-  const columns = React.useMemo(() => buildColumns(editingNameRowId, setEditingNameRowId, { includeTotals: true }), [editingNameRowId]);
+  const columns = React.useMemo(
+    () => buildColumns(editingNameRowId, setEditingNameRowId, { includeTotals: true, language: 'de-DE', currency: 'EUR' }),
+    [editingNameRowId]
+  );
 
   const getRowCanDrag = React.useCallback((row: ExampleRow) => {
     if (row.draggable === false) return false;
@@ -134,7 +137,10 @@ export function ExampleLineItemsTable() {
     await moveLineItems({ selectedLineItemIds: [sourceId], parentLineItemId, previousLineItem });
   }, [rows, moveLineItems]);
 
-  const COLUMN_PROP_MAP: Record<string, string> = React.useMemo(() => ({ qty: 'quantity', name: 'name', unitPrice: 'unitPrice' }), []);
+  const COLUMN_PROP_MAP: Record<string, string> = React.useMemo(
+    () => ({ qty: 'quantity', name: 'name', unitPrice: 'unitPrice', discount: 'discount' }),
+    []
+  );
 
   return (
     <>

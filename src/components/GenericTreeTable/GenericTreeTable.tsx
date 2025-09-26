@@ -65,7 +65,6 @@ export function GenericTreeTable<T extends object>(props: TreeTableProps<T>) {
     const byKey = useMemo(() => buildRowIndexMap(rows), [rows])
 
     const [activeId, setActiveId] = useState<string | null>(null)
-    const [overId, setOverId] = useState<string | null>(null)
     const validTargets = useValidTargets<T>(
         activeId,
         byKey,
@@ -102,7 +101,6 @@ export function GenericTreeTable<T extends object>(props: TreeTableProps<T>) {
         (ev: DragEndEvent) => {
             const activeKey = String(ev.active.id)
             const overKey = ev.over ? String(ev.over.id) : null
-            setOverId(null)
             setActiveId(null)
             if (!overKey) return
             const parts = overKey.includes(":")
@@ -126,10 +124,6 @@ export function GenericTreeTable<T extends object>(props: TreeTableProps<T>) {
         },
         [byKey, getRowCanDrop, onDrop, validTargets]
     )
-
-    const handleDragOver = useCallback((ev: any) => {
-        setOverId(ev.over ? String(ev.over.id) : null)
-    }, [])
     return (
         <TableContainer>
             <DndContext
@@ -137,7 +131,6 @@ export function GenericTreeTable<T extends object>(props: TreeTableProps<T>) {
                 collisionDetection={collisionDetection}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                onDragOver={handleDragOver}
             >
                 <Table
                     size={size}
@@ -173,7 +166,6 @@ export function GenericTreeTable<T extends object>(props: TreeTableProps<T>) {
                                 getRowCanDrag={getRowCanDrag}
                                 getRowCanDrop={getRowCanDrop}
                                 validTargets={validTargets}
-                                overId={overId}
                                 activeId={activeId}
                                 byKey={byKey}
                                 toggle={toggle}

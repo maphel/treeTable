@@ -38,7 +38,6 @@ export type DraggableRowProps<T extends object> = {
         position: "inside" | "before" | "after"
     ) => boolean
     validTargets: Set<string> | null
-    overId: string | null
     activeId: string | null
     byKey: Map<string, RowModel<T>>
     toggle: (id: string) => void
@@ -59,7 +58,7 @@ export type DraggableRowProps<T extends object> = {
     ) => Promise<void> | void
 }
 
-export default function DraggableRow<T extends object>(
+function DraggableRowInner<T extends object>(
     props: DraggableRowProps<T>
 ) {
     const {
@@ -70,7 +69,6 @@ export default function DraggableRow<T extends object>(
         getRowCanDrag,
         getRowCanDrop,
         validTargets,
-        overId,
         activeId,
         byKey,
         toggle,
@@ -105,7 +103,8 @@ export default function DraggableRow<T extends object>(
         transform: isDragging ? undefined : CSS.Translate.toString(transform),
         opacity: isDragging ? 0.5 : 1,
         zIndex: isDragging ? 1 : undefined,
-        position: "relative"
+        position: "relative",
+        willChange: "transform"
     }
 
     const insideAllowed = useMemo(() => {
@@ -210,33 +209,9 @@ export default function DraggableRow<T extends object>(
             aria-level={level + 1}
             aria-expanded={hasChildren ? isExpanded : undefined}
             onKeyDown={handleRowKeyDown}
-            sx={(theme) => {
-                const color = theme.palette.primary.light
-                const isBeforeOverRow =
-                    !!activeId &&
-                    beforeAllowed &&
-                    overId === `before:${draggableId}`
-                const isAfterOverRow =
-                    !!activeId &&
-                    afterAllowed &&
-                    overId === `after:${draggableId}`
-                const isInsideOverRow =
-                    !!activeId &&
-                    insideAllowed &&
-                    overId === `inside:${draggableId}`
-                const base: any = {
-                    position: "relative",
-                    transition: "background-color 120ms, background-image 120ms"
-                }
-                if (isInsideOverRow) {
-                    base.backgroundColor = color
-                    base.backgroundImage = "none"
-                } else if (isBeforeOverRow) {
-                    base.background = `linear-gradient(to bottom, ${color} 0%, ${color} 20%, transparent 20%, transparent 100%)`
-                } else if (isAfterOverRow) {
-                    base.backgroundImage = `linear-gradient(to bottom, transparent 0%, transparent 80%, ${color} 80%, ${color} 100%)`
-                }
-                return base
+            sx={{
+                position: "relative",
+                transition: "background-color 120ms, background-image 120ms"
             }}
         >
             {visibleColumns.map((col, idx) => {
@@ -361,6 +336,21 @@ export default function DraggableRow<T extends object>(
                             display: insideAllowed ? "block" : "none"
                         }}
                     />
+                    {/* Inside highlight overlay (covers entire row when hovering middle zone) */}
+                    {activeId && insideAllowed && isInsideOver && (
+                        <Box
+                            sx={(theme) => ({
+                                position: "absolute",
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                bottom: 0,
+                                pointerEvents: "none",
+                                backgroundColor: theme.palette.primary.light,
+                                zIndex: 1
+                            })}
+                        />
+                    )}
                     <DropEdgeOverlays
                         rowId={draggableId}
                         allowedBefore={!!activeId && beforeAllowed}
@@ -372,3 +362,7 @@ export default function DraggableRow<T extends object>(
         </TableRow>
     )
 }
+
+const DraggableRow = React.memo(DraggableRowInner) as typeof DraggableRowInner
+
+export default DraggableRow

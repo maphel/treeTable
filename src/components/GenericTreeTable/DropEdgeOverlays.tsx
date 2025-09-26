@@ -16,8 +16,8 @@ export default function DropEdgeOverlays({
 }) {
     const beforeId = React.useMemo(() => `before:${rowId}` as const, [rowId])
     const afterId = React.useMemo(() => `after:${rowId}` as const, [rowId])
-    const { setNodeRef: setBeforeRef } = useDroppable({ id: beforeId })
-    const { setNodeRef: setAfterRef } = useDroppable({ id: afterId })
+    const { setNodeRef: setBeforeRef, isOver: isBeforeOver } = useDroppable({ id: beforeId })
+    const { setNodeRef: setAfterRef, isOver: isAfterOver } = useDroppable({ id: afterId })
 
     const commonZoneStyles = {
         position: "absolute" as const,
@@ -38,6 +38,20 @@ export default function DropEdgeOverlays({
                     display: allowedBefore ? "block" : "none"
                 }}
             />
+            {isActiveDrag && allowedBefore && isBeforeOver && (
+                <Box
+                    sx={(theme) => ({
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        height: "33.333%",
+                        pointerEvents: "none",
+                        zIndex: 1,
+                        background: `linear-gradient(to bottom, ${theme.palette.primary.light} 0%, ${theme.palette.primary.light} 50%, transparent 50%, transparent 100%)`
+                    })}
+                />
+            )}
             <Box
                 ref={setAfterRef}
                 sx={{
@@ -47,6 +61,20 @@ export default function DropEdgeOverlays({
                     display: allowedAfter ? "block" : "none"
                 }}
             />
+            {isActiveDrag && allowedAfter && isAfterOver && (
+                <Box
+                    sx={(theme) => ({
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: "33.333%",
+                        pointerEvents: "none",
+                        zIndex: 1,
+                        background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${theme.palette.primary.light} 50%, ${theme.palette.primary.light} 100%)`
+                    })}
+                />
+            )}
         </>
     )
 }

@@ -20,7 +20,6 @@ export function GenericTreeTable(props) {
     const visibleColumns = useMemo(() => getVisibleColumns(columns, viewMode), [columns, viewMode]);
     const byKey = useMemo(() => buildRowIndexMap(rows), [rows]);
     const [activeId, setActiveId] = useState(null);
-    const [overId, setOverId] = useState(null);
     const validTargets = useValidTargets(activeId, byKey, getValidDropTargets);
     const sensors = useDragSensors(props.dragActivation);
     const { editingKey, setEditingKey, editingValue, setEditingValue, autoClosedKeys, markAutoClosed, startEdit } = useInlineEditing();
@@ -37,7 +36,6 @@ export function GenericTreeTable(props) {
     const handleDragEnd = useCallback((ev) => {
         const activeKey = String(ev.active.id);
         const overKey = ev.over ? String(ev.over.id) : null;
-        setOverId(null);
         setActiveId(null);
         if (!overKey)
             return;
@@ -62,8 +60,5 @@ export function GenericTreeTable(props) {
             return;
         onDrop === null || onDrop === void 0 ? void 0 : onDrop(sourceRow.id, targetRow.id, position);
     }, [byKey, getRowCanDrop, onDrop, validTargets]);
-    const handleDragOver = useCallback((ev) => {
-        setOverId(ev.over ? String(ev.over.id) : null);
-    }, []);
-    return (_jsx(TableContainer, { children: _jsxs(DndContext, { sensors: sensors, collisionDetection: collisionDetection, onDragStart: handleDragStart, onDragEnd: handleDragEnd, onDragOver: handleDragOver, children: [_jsxs(Table, { size: size, role: "treegrid", "aria-readonly": readOnly || undefined, children: [_jsx(TableHead, { children: _jsxs(TableRow, { children: [visibleColumns.map((col) => (_jsx(TableCell, { align: col.align, style: { width: col.width }, children: col.header }, col.id))), getRowActions && (_jsx(TableCell, { align: "right", children: actionsHeader !== null && actionsHeader !== void 0 ? actionsHeader : "" }, "__actions"))] }) }), _jsxs(TableBody, { children: [visible.map((vr) => (_jsx(DraggableRow, { data: vr, visibleColumns: visibleColumns, size: size, readOnly: readOnly, getRowCanDrag: getRowCanDrag, getRowCanDrop: getRowCanDrop, validTargets: validTargets, overId: overId, activeId: activeId, byKey: byKey, toggle: toggle, viewMode: viewMode, getRowActions: getRowActions, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, autoClosedKeys: autoClosedKeys, markAutoClosed: markAutoClosed, startEdit: startEdit, onEditCommit: props.onEditCommit }, String(vr.row.id)))), getTableRowChildren && getTableRowChildren(rows, viewMode)] })] }), _jsx(DragOverlay, { children: _jsx(DragOverlayContent, { activeId: activeId, byKey: byKey, visible: visible, columns: visibleColumns, size: size }) })] }) }));
+    return (_jsx(TableContainer, { children: _jsxs(DndContext, { sensors: sensors, collisionDetection: collisionDetection, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: [_jsxs(Table, { size: size, role: "treegrid", "aria-readonly": readOnly || undefined, children: [_jsx(TableHead, { children: _jsxs(TableRow, { children: [visibleColumns.map((col) => (_jsx(TableCell, { align: col.align, style: { width: col.width }, children: col.header }, col.id))), getRowActions && (_jsx(TableCell, { align: "right", children: actionsHeader !== null && actionsHeader !== void 0 ? actionsHeader : "" }, "__actions"))] }) }), _jsxs(TableBody, { children: [visible.map((vr) => (_jsx(DraggableRow, { data: vr, visibleColumns: visibleColumns, size: size, readOnly: readOnly, getRowCanDrag: getRowCanDrag, getRowCanDrop: getRowCanDrop, validTargets: validTargets, activeId: activeId, byKey: byKey, toggle: toggle, viewMode: viewMode, getRowActions: getRowActions, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, autoClosedKeys: autoClosedKeys, markAutoClosed: markAutoClosed, startEdit: startEdit, onEditCommit: props.onEditCommit }, String(vr.row.id)))), getTableRowChildren && getTableRowChildren(rows, viewMode)] })] }), _jsx(DragOverlay, { children: _jsx(DragOverlayContent, { activeId: activeId, byKey: byKey, visible: visible, columns: visibleColumns, size: size }) })] }) }));
 }
