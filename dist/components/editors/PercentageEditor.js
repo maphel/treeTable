@@ -2,7 +2,7 @@ import { jsx as _jsx } from "react/jsx-runtime";
 import { TextField, InputAdornment } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { formatPercentLive, formatPercentValue, getLocaleSeparators, parsePercent } from "../formatters/percentage.js";
-import { useCommitCancelHandlers, useSelectOnAutoFocus, countUnitsBeforeCaret, restoreCaretByUnits, getOtherDecimal } from "./shared.js";
+import { useCommitCancelHandlers, useSelectOnAutoFocus, countUnitsBeforeCaret, restoreCaretByUnits, getOtherDecimal, compactTextFieldSx } from "./shared.js";
 function formatValue(value, locale) {
     if (value === undefined)
         return "";
@@ -38,12 +38,13 @@ export default function PercentageEditor({ value, onChange, onCommit, onCancel, 
             restoreCaretByUnits(el, unitsLeft, dec, true);
         });
     };
-    return (_jsx(TextField, { variant: "standard", size: "small", value: text, onChange: handleChange, onKeyDown: onKeyDown, onBlur: onBlur, autoFocus: autoFocus, inputRef: inputRef, fullWidth: true, InputProps: {
-            endAdornment: (_jsx(InputAdornment, { position: "end", children: "%" }))
+    return (_jsx(TextField, { variant: "standard", size: "small", margin: "dense", value: text, onChange: handleChange, onKeyDown: onKeyDown, onBlur: onBlur, autoFocus: autoFocus, inputRef: inputRef, fullWidth: true, InputProps: {
+            endAdornment: (_jsx(InputAdornment, { position: "end", sx: { m: 0 }, children: "%" }))
         }, inputProps: {
             inputMode: "decimal",
             min,
             max,
-            step
-        } }));
+            step,
+            style: { textAlign: 'right' }
+        }, sx: compactTextFieldSx }));
 }

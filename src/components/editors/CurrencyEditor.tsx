@@ -6,7 +6,7 @@ import {
   formatCurrencyValue,
   getLocaleSeparators,
 } from '../formatters/currency.js';
-import { useCommitCancelHandlers, useSelectOnAutoFocus, countUnitsBeforeCaret, restoreCaretByUnits, getOtherDecimal } from './shared.js'
+import { useCommitCancelHandlers, useSelectOnAutoFocus, countUnitsBeforeCaret, restoreCaretByUnits, getOtherDecimal, compactTextFieldSx } from './shared.js'
 
 export type CurrencyInputProps = {
   value: string | number | undefined;
@@ -70,6 +70,7 @@ export default function CurrencyEditor({
     <TextField
       variant="standard"
       size="small"
+      margin="dense"
       value={displayValue}
       onChange={handleChange}
       onKeyDown={onKeyDown}
@@ -79,10 +80,11 @@ export default function CurrencyEditor({
       fullWidth
       InputProps={{
         ...(currencyPlacement === 'start'
-          ? { startAdornment: (<InputAdornment position="start">{separators.currencySym}</InputAdornment>) }
-          : { endAdornment: (<InputAdornment position="end">{separators.currencySym}</InputAdornment>) }),
+          ? { startAdornment: (<InputAdornment position="start" sx={{ m: 0 }}>{separators.currencySym}</InputAdornment>) }
+          : { endAdornment: (<InputAdornment position="end" sx={{ m: 0 }}>{separators.currencySym}</InputAdornment>) }),
       }}
-      inputProps={{ inputMode: 'decimal' }}
+      inputProps={{ inputMode: 'decimal', style: { textAlign: 'right' } }}
+      sx={compactTextFieldSx}
     />
   );
 }

@@ -68,6 +68,25 @@ export function countUnitsBeforeCaret(s, caretPos, dec, otherDec) {
     }
     return units;
 }
+// Compact TextField styles for dense table cells
+export const compactTextFieldSx = {
+    '& .MuiInputBase-root': {
+        fontSize: 13,
+        lineHeight: 1.2,
+        minHeight: 0,
+    },
+    '& .MuiInputBase-input': {
+        paddingTop: 2,
+        paddingBottom: 2,
+    },
+    '& .MuiInputAdornment-root': {
+        margin: 0,
+        '& .MuiTypography-root': {
+            fontSize: 12,
+            lineHeight: 1.2,
+        },
+    },
+};
 export function restoreCaretByUnits(input, unitsLeft, dec, includeOtherDecimal = false) {
     let newPos = 0;
     let units = 0;

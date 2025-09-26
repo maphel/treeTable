@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react"
+import type { SxProps, Theme } from "@mui/material/styles"
 
 export function useCommitCancelHandlers(
   onCommit?: () => void,
@@ -86,6 +87,20 @@ export function countUnitsBeforeCaret(
     }
   }
   return units
+}
+
+// Compact TextField styles for dense table cells
+export const compactTextFieldSx: SxProps<Theme> = {
+  '& .MuiInputBase-root': {
+    fontSize: 13,
+  },
+  '& .MuiInputAdornment-root': {
+    margin: 0,
+    '& .MuiTypography-root': {
+      fontSize: 12,
+      lineHeight: 1.2,
+    },
+  },
 }
 
 export function restoreCaretByUnits(

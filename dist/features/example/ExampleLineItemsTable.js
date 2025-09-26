@@ -108,7 +108,7 @@ export function ExampleLineItemsTable() {
     }, [rows, moveLineItems]);
     const COLUMN_PROP_MAP = React.useMemo(() => ({ qty: 'quantity', name: 'name', unitPrice: 'unitPrice', discount: 'discount' }), []);
     return (_jsxs(_Fragment, { children: [_jsxs(Box, { sx: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }, children: [_jsx(Box, { sx: { fontWeight: 600, color: 'text.secondary' }, children: "Ansicht" }), _jsxs(ToggleButtonGroup, { exclusive: true, size: "small", value: view, onChange: (_, next) => { if (next)
-                            setView(next); }, "aria-label": "Ansicht w\u00E4hlen", children: [_jsx(ToggleButton, { value: "pro", "aria-label": "Pro-Ansicht", children: "Pro" }), _jsx(ToggleButton, { value: "customer", "aria-label": "Kundenansicht", children: "Kunde" })] })] }), _jsx(GenericTreeTable, { dragActivation: { mode: 'distance', distance: 3 }, rows: rows, columns: columns, viewMode: view, actionsHeader: "Aktionen", onEditCommit: async (row, column, next) => {
+                            setView(next); }, "aria-label": "Ansicht w\u00E4hlen", children: [_jsx(ToggleButton, { value: "pro", "aria-label": "Pro-Ansicht", children: "Pro" }), _jsx(ToggleButton, { value: "customer", "aria-label": "Kundenansicht", children: "Kunde" })] })] }), _jsx(GenericTreeTable, { size: 'small', dragActivation: { mode: 'distance', distance: 3 }, rows: rows, columns: columns, viewMode: view, actionsHeader: "Aktionen", onEditCommit: async (row, column, next) => {
                     var _a;
                     const lineItemId = row.id;
                     const prop = (_a = COLUMN_PROP_MAP[column.id]) !== null && _a !== void 0 ? _a : column.id;

@@ -1,7 +1,7 @@
 import { TextField, InputAdornment } from "@mui/material"
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { formatPercentLive, formatPercentValue, getLocaleSeparators, parsePercent } from "../formatters/percentage.js"
-import { useCommitCancelHandlers, useSelectOnAutoFocus, countUnitsBeforeCaret, restoreCaretByUnits, getOtherDecimal } from "./shared.js"
+import { useCommitCancelHandlers, useSelectOnAutoFocus, countUnitsBeforeCaret, restoreCaretByUnits, getOtherDecimal, compactTextFieldSx } from "./shared.js"
 
 
 export type PercentageEditorProps = {
@@ -69,6 +69,7 @@ export default function PercentageEditor({
         <TextField
             variant="standard"
             size="small"
+            margin="dense"
             value={text}
             onChange={handleChange}
             onKeyDown={onKeyDown}
@@ -78,15 +79,17 @@ export default function PercentageEditor({
             fullWidth
             InputProps={{
                 endAdornment: (
-                    <InputAdornment position="end">%</InputAdornment>
+                    <InputAdornment position="end" sx={{ m: 0 }}>%</InputAdornment>
                 )
             }}
             inputProps={{
                 inputMode: "decimal",
                 min,
                 max,
-                step
+                step,
+                style: { textAlign: 'right' }
             }}
+            sx={compactTextFieldSx}
         />
     )
 }

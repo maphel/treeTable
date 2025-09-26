@@ -1,6 +1,6 @@
 import { TextField } from "@mui/material"
 import { useEffect, useState } from "react"
-import { useCommitCancelHandlers, useSelectOnAutoFocus } from "./shared.js"
+import { useCommitCancelHandlers, useSelectOnAutoFocus, compactTextFieldSx } from "./shared.js"
 
 
 export type NumberEditorProps = {
@@ -38,6 +38,7 @@ export default function NumberEditor({
         <TextField
             variant="standard"
             size="small"
+            margin="dense"
             value={text}
             inputRef={ref}
             onChange={(e) => {
@@ -47,8 +48,9 @@ export default function NumberEditor({
             onKeyDown={onKeyDown}
             onBlur={onBlur}
             autoFocus={autoFocus}
-            inputProps={{ inputMode: "decimal", step, min, max }}
+            inputProps={{ inputMode: "decimal", step, min, max, style: { textAlign: 'right' } }}
             fullWidth
+            sx={compactTextFieldSx}
         />
     )
 }

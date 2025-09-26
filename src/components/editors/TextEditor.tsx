@@ -1,5 +1,5 @@
 import { TextField } from "@mui/material"
-import { useCommitCancelHandlers, useSelectOnAutoFocus } from "./shared.js"
+import { useCommitCancelHandlers, useSelectOnAutoFocus, compactTextFieldSx } from "./shared.js"
 
 
 export type TextEditorProps = {
@@ -24,6 +24,7 @@ export default function TextEditor({
         <TextField
             variant="standard"
             size="small"
+            margin="dense"
             value={typeof value === "string" ? value : value ?? ""}
             inputRef={ref}
             onChange={(e) => onChange(e.target.value)}
@@ -31,6 +32,7 @@ export default function TextEditor({
             onBlur={onBlur}
             autoFocus={autoFocus}
             fullWidth
+            sx={compactTextFieldSx}
         />
     )
 }

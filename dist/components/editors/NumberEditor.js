@@ -1,7 +1,7 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { TextField } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useCommitCancelHandlers, useSelectOnAutoFocus } from "./shared.js";
+import { useCommitCancelHandlers, useSelectOnAutoFocus, compactTextFieldSx } from "./shared.js";
 export default function NumberEditor({ value, onChange, onCommit, onCancel, autoFocus, step, min, max }) {
     const [text, setText] = useState(value == null ? "" : String(value));
     useEffect(() => {
@@ -13,8 +13,8 @@ export default function NumberEditor({ value, onChange, onCommit, onCancel, auto
         const n = parseFloat(s.replace(",", "."));
         return Number.isFinite(n) ? n : undefined;
     };
-    return (_jsx(TextField, { variant: "standard", size: "small", value: text, inputRef: ref, onChange: (e) => {
+    return (_jsx(TextField, { variant: "standard", size: "small", margin: "dense", value: text, inputRef: ref, onChange: (e) => {
             setText(e.target.value);
             onChange(parse(e.target.value));
-        }, onKeyDown: onKeyDown, onBlur: onBlur, autoFocus: autoFocus, inputProps: { inputMode: "decimal", step, min, max }, fullWidth: true }));
+        }, onKeyDown: onKeyDown, onBlur: onBlur, autoFocus: autoFocus, inputProps: { inputMode: "decimal", step, min, max, style: { textAlign: 'right' } }, fullWidth: true, sx: compactTextFieldSx }));
 }

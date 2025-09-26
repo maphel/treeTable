@@ -153,6 +153,7 @@ export function ExampleLineItemsTable() {
       </Box>
 
       <GenericTreeTable
+        size='small'
         dragActivation={{ mode: 'distance', distance: 3 }}
         rows={rows}
         columns={columns}
