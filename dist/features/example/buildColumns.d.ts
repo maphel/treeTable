@@ -13,7 +13,7 @@ export type RowData = {
 export declare function TypeIcon({ type }: {
     type: string;
 }): import("react/jsx-runtime").JSX.Element;
-export declare function buildColumns(editingNameRowId: string | null, setEditingNameRowId: React.Dispatch<React.SetStateAction<string | null>>, options?: {
+export declare function buildColumns(editingRowId: string | null, _setEditingRowId: React.Dispatch<React.SetStateAction<string | null>>, options?: {
     includeTotals?: boolean;
     language?: string;
     currency?: string;

@@ -97,10 +97,11 @@ export function ExampleLineItemsTable() {
   const [view, setView] = useViewMode();
   const isCustomer = view === 'customer';
 
-  const [editingNameRowId, setEditingNameRowId] = React.useState<string | null>(null);
+  // Row-level edit toggle: when set to a row id, all editable cells in that row are unlocked
+  const [editingRowId, setEditingRowId] = React.useState<string | null>(null);
   const columns = React.useMemo(
-    () => buildColumns(editingNameRowId, setEditingNameRowId, { includeTotals: true, language: 'de-DE', currency: 'EUR' }),
-    [editingNameRowId]
+    () => buildColumns(editingRowId, setEditingRowId, { includeTotals: true, language: 'de-DE', currency: 'EUR' }),
+    [editingRowId]
   );
 
   const getRowCanDrag = React.useCallback((row: ExampleRow) => {
@@ -162,15 +163,18 @@ export function ExampleLineItemsTable() {
           const lineItemId = row.id;
           const prop = COLUMN_PROP_MAP[column.id] ?? column.id;
           await updateLineItem({ lineItemId, properties: { [prop]: next } });
-          setEditingNameRowId((curr) => (curr === row.id ? null : curr));
+        }}
+        onRowAllEditorsClosed={(row) => {
+          setEditingRowId((curr) => (curr === row.id ? null : curr));
         }}
         getRowActions={!isCustomer ? ((row) => (
           <RowActions
             row={row as any}
+            isEditing={editingRowId === row.id}
             isDuplicating={isDuplicating}
             isDeleting={isDeleting}
             confirmDelete
-            onEdit={() => setEditingNameRowId(row.id)}
+            onEdit={() => setEditingRowId((curr) => (curr === row.id ? null : row.id))}
             onDuplicate={async () => { await duplicateLineItems({ selectedLineItemIds: [row.id] }); }}
             onDelete={async () => { await deleteLineItems({ selectedLineItemIds: [row.id] }); }}
           />

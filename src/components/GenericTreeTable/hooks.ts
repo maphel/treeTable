@@ -149,6 +149,23 @@ export function useInlineEditing<T extends object>() {
         })
     }, [])
 
+    const clearAutoClosedForRow = useCallback((rowId: string) => {
+        setAutoClosedKeys((prev) => {
+            if (prev.size === 0) return prev
+            const prefix = `${String(rowId)}::`
+            let changed = false
+            const next = new Set<string>()
+            for (const k of prev) {
+                if (k.startsWith(prefix)) {
+                    changed = true
+                    continue
+                }
+                next.add(k)
+            }
+            return changed ? next : prev
+        })
+    }, [])
+
     return {
         editingKey,
         setEditingKey,
@@ -156,6 +173,7 @@ export function useInlineEditing<T extends object>() {
         setEditingValue,
         autoClosedKeys,
         startEdit,
-        markAutoClosed
+        markAutoClosed,
+        clearAutoClosedForRow
     } as const
 }

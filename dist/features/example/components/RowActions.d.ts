@@ -5,6 +5,7 @@ export type RowActionsProps<T extends object = {}> = {
         configurationPermission?: boolean;
         propertyPermissions?: Partial<Record<'name' | 'quantity' | 'unitPrice', boolean>>;
     };
+    isEditing?: boolean;
     isDuplicating: boolean;
     isDeleting: boolean;
     confirmDelete?: boolean;
@@ -12,4 +13,4 @@ export type RowActionsProps<T extends object = {}> = {
     onDuplicate: () => void | Promise<void>;
     onDelete: () => void | Promise<void>;
 };
-export default function RowActions<T extends object = {}>({ row, isDuplicating, isDeleting, confirmDelete, onEdit, onDuplicate, onDelete, }: RowActionsProps<T>): import("react/jsx-runtime").JSX.Element | null;
+export default function RowActions<T extends object = {}>({ row, isEditing, isDuplicating, isDeleting, confirmDelete, onEdit, onDuplicate, onDelete, }: RowActionsProps<T>): import("react/jsx-runtime").JSX.Element | null;

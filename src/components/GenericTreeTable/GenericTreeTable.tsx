@@ -46,7 +46,8 @@ export function GenericTreeTable<T extends object>(props: TreeTableProps<T>) {
         onDrop,
         getValidDropTargets,
         viewMode,
-        actionsHeader
+        actionsHeader,
+        onRowAllEditorsClosed
     } = props
     const readOnly = !!props.readOnly
 
@@ -78,6 +79,7 @@ export function GenericTreeTable<T extends object>(props: TreeTableProps<T>) {
         setEditingValue,
         autoClosedKeys,
         markAutoClosed,
+        clearAutoClosedForRow,
         startEdit
     } = useInlineEditing<T>()
 
@@ -177,8 +179,10 @@ export function GenericTreeTable<T extends object>(props: TreeTableProps<T>) {
                                 setEditingValue={setEditingValue}
                                 autoClosedKeys={autoClosedKeys}
                                 markAutoClosed={markAutoClosed}
+                                clearAutoClosedForRow={clearAutoClosedForRow}
                                 startEdit={startEdit}
                                 onEditCommit={props.onEditCommit}
+                                onRowAllEditorsClosed={onRowAllEditorsClosed}
                             />
                         ))}
                         {getTableRowChildren && getTableRowChildren(rows, viewMode)}

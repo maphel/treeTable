@@ -27,7 +27,7 @@ export default function DropEdgeOverlays({ rowId, allowedBefore, allowedAfter, i
                     height: "33.333%",
                     pointerEvents: "none",
                     zIndex: 1,
-                    background: `linear-gradient(to bottom, ${theme.palette.primary.light} 0%, ${theme.palette.primary.light} 20%, transparent 20%, transparent 100%)`
+                    background: `linear-gradient(to bottom, ${theme.palette.primary.light} 0%, ${theme.palette.primary.light} 50%, transparent 50%, transparent 100%)`
                 }) })), _jsx(Box, { ref: setAfterRef, sx: {
                     ...commonZoneStyles,
                     bottom: 0,
@@ -41,6 +41,6 @@ export default function DropEdgeOverlays({ rowId, allowedBefore, allowedAfter, i
                     height: "33.333%",
                     pointerEvents: "none",
                     zIndex: 1,
-                    background: `linear-gradient(to bottom, transparent 0%, transparent 80%, ${theme.palette.primary.light} 80%, ${theme.palette.primary.light} 100%)`
+                    background: `linear-gradient(to bottom, transparent 0%, transparent 50%, ${theme.palette.primary.light} 50%, ${theme.palette.primary.light} 100%)`
                 }) }))] }));
 }

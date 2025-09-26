@@ -31,8 +31,8 @@ export function TypeIcon({ type }: { type: string }) {
 }
 
 export function buildColumns(
-  editingNameRowId: string | null,
-  setEditingNameRowId: React.Dispatch<React.SetStateAction<string | null>>,
+  editingRowId: string | null,
+  _setEditingRowId: React.Dispatch<React.SetStateAction<string | null>>,
   options: { includeTotals?: boolean; language?: string; currency?: string } = {}
 ): ColumnDef<RowData>[] {
   // Ensure sane defaults even when a partial options object is supplied
@@ -47,19 +47,17 @@ export function buildColumns(
       header: 'Name',
       width: '40%',
       getIsEditable: (row) => row.type === 'custom' && (row.propertyPermissions?.name ?? true),
-      editMode: (row) => (row.id === editingNameRowId ? 'unlocked' : undefined),
-      autoCommitOnChange: (row) => row.id === editingNameRowId,
-      editor: (p) => (
+      // Row-level edit unlocks this cell when the row is active
+      editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
+      // Keep name auto-commit while in row edit mode
+      autoCommitOnChange: (row) => row.id === editingRowId,
+      editor: ({ value, onChange, commit, cancel, autoFocus }) => (
         <TextEditor
-          {...p}
-          onCommit={() => {
-            p.commit();
-            setEditingNameRowId((curr) => (curr === p.row.id ? null : curr));
-          }}
-          onCancel={() => {
-            p.cancel();
-            setEditingNameRowId((curr) => (curr === p.row.id ? null : curr));
-          }}
+          value={value}
+          onChange={onChange as any}
+          onCommit={commit}
+          onCancel={cancel}
+          autoFocus={autoFocus}
         />
       ),
       cell: ({ row, value }) => (
@@ -75,6 +73,8 @@ export function buildColumns(
       align: 'right',
       width: 120,
       getIsEditable: (row) => row.type !== 'folder' && (row.propertyPermissions?.quantity ?? true),
+      // Row-level edit unlocks this cell when the row is active
+      editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
         <NumberEditor
           value={typeof value === 'number' ? value : undefined}
@@ -95,6 +95,8 @@ export function buildColumns(
       width: 140,
       getIsEditable: (row) => row.type !== 'folder' && (row.propertyPermissions?.unitPrice ?? true),
       getIsVisible: (vm) => vm !== 'customer',
+      // Row-level edit unlocks this cell when the row is active
+      editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
         <CurrencyEditor 
         value={value as any}
@@ -117,6 +119,8 @@ export function buildColumns(
       width: 120,
       getIsEditable: (row) => row.type !== 'folder',
       getIsVisible: (vm) => vm !== 'customer',
+      // Row-level edit unlocks this cell when the row is active
+      editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
       // Use the PercentageEditor; it emits fractions (0.15 for 15%)
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
         <PercentageEditor

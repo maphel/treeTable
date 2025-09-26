@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import EditIcon from '@mui/icons-material/Edit';
+import EditOffIcon from '@mui/icons-material/EditOff';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
@@ -14,6 +15,7 @@ export type RowActionsProps<T extends object = {}> = {
     configurationPermission?: boolean;
     propertyPermissions?: Partial<Record<'name' | 'quantity' | 'unitPrice', boolean>>;
   };
+  isEditing?: boolean;
   isDuplicating: boolean;
   isDeleting: boolean;
   confirmDelete?: boolean;
@@ -24,6 +26,7 @@ export type RowActionsProps<T extends object = {}> = {
 
 export default function RowActions<T extends object = {}>({
   row,
+  isEditing,
   isDuplicating,
   isDeleting,
   confirmDelete = true,
@@ -36,9 +39,14 @@ export default function RowActions<T extends object = {}>({
   if (!allowed || (row as any).type === 'subproduct') return null;
 
   const type = (row as any).type as string;
-  const canEditName = type === 'custom' && ((row as any).propertyPermissions?.name ?? true);
+  const propPerms = (row as any).propertyPermissions || {};
+  const canEditName = type === 'custom' && (propPerms.name ?? true);
+  const canEditQty = type !== 'folder' && (propPerms.quantity ?? true);
+  const canEditUnitPrice = type !== 'folder' && (propPerms.unitPrice ?? true);
+  const canEditDiscount = type !== 'folder';
+  const hasAnyEditable = (canEditName || canEditQty || canEditUnitPrice || canEditDiscount) && type !== 'subproduct';
   const showEdit = type === 'custom' || type === 'product';
-  const editDisabled = type !== 'custom' || !canEditName;
+  const editDisabled = !hasAnyEditable;
 
   const showDuplicate = type === 'product' || type === 'custom';
   const duplicateDisabled = !configAllowed;
@@ -57,10 +65,10 @@ export default function RowActions<T extends object = {}>({
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
       {showEdit && (
-        <Tooltip title={editDisabled ? 'Bearbeiten nicht möglich' : 'Bearbeiten'}>
+        <Tooltip title={editDisabled ? 'Bearbeiten nicht möglich' : (isEditing ? 'Bearbeiten beenden' : 'Bearbeiten')}>
           <span>
             <IconButton size="small" disabled={editDisabled} onClick={(e) => { e.stopPropagation(); if (!editDisabled) onEdit(); }}>
-              <EditIcon fontSize="small" />
+              {isEditing ? <EditOffIcon fontSize="small" /> : <EditIcon fontSize="small" />}
             </IconButton>
           </span>
         </Tooltip>
@@ -86,4 +94,3 @@ export default function RowActions<T extends object = {}>({
     </Box>
   );
 }
-

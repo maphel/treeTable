@@ -132,6 +132,12 @@ export type TreeTableProps<T extends object> = {
         column: ColumnDef<T>,
         nextValue: unknown
     ) => Promise<void> | void
+    /**
+     * Optional: called when a row that is in 'unlocked' edit mode has all its
+     * editable cells closed (committed or cancelled). Useful to auto-exit
+     * row-level edit mode in your app state.
+     */
+    onRowAllEditorsClosed?: (row: RowModel<T>) => void
 }
 
 /** Options to configure pointer drag activation behavior. */

@@ -50,12 +50,14 @@ export type DraggableRowProps<T extends object> = {
     setEditingValue: Dispatch<SetStateAction<any>>
     autoClosedKeys: Set<string>
     markAutoClosed: (key: string) => void
+    clearAutoClosedForRow: (rowId: string) => void
     startEdit: (row: RowModel<T>, column: ColumnDef<T>) => void
     onEditCommit?: (
         row: RowModel<T>,
         column: ColumnDef<T>,
         next: unknown
     ) => Promise<void> | void
+    onRowAllEditorsClosed?: (row: RowModel<T>) => void
 }
 
 function DraggableRowInner<T extends object>(
@@ -80,8 +82,10 @@ function DraggableRowInner<T extends object>(
         setEditingValue,
         autoClosedKeys,
         markAutoClosed,
+        clearAutoClosedForRow,
         startEdit,
-        onEditCommit
+        onEditCommit,
+        onRowAllEditorsClosed
     } = props
 
     const { row, level, hasChildren, expanded: isExpanded } = data
@@ -179,6 +183,41 @@ function DraggableRowInner<T extends object>(
         [row, viewMode, isEditable]
     )
 
+    // When row transitions from no-unlocked-cells to unlocked-cells, we reset the
+    // autoClosed flags for this row so all cells re-open on next render.
+    const anyUnlocked = useMemo(
+        () => visibleColumns.some((c) => isEditable(c) && resolveEditMode(c) === "unlocked"),
+        [visibleColumns, isEditable, resolveEditMode]
+    )
+    const prevUnlockedRef = React.useRef(false)
+    useEffect(() => {
+        if (!prevUnlockedRef.current && anyUnlocked) {
+            clearAutoClosedForRow(String(row.id))
+        }
+        prevUnlockedRef.current = anyUnlocked
+    }, [anyUnlocked, clearAutoClosedForRow, row.id])
+
+    // When all unlocked cells have been auto-closed, notify parent so it can
+    // clear external row-level edit state if desired.
+    const allClosedNotifiedRef = React.useRef(false)
+    useEffect(() => {
+        if (!anyUnlocked) {
+            allClosedNotifiedRef.current = false
+            return
+        }
+        const unlockedKeys = visibleColumns
+            .filter((c) => isEditable(c) && resolveEditMode(c) === "unlocked")
+            .map((c) => `${String(row.id)}::${c.id}`)
+        if (unlockedKeys.length === 0) return
+        const allClosed = unlockedKeys.every((k) => autoClosedKeys.has(k))
+        if (allClosed && !allClosedNotifiedRef.current) {
+            onRowAllEditorsClosed?.(row)
+            allClosedNotifiedRef.current = true
+        } else if (!allClosed) {
+            allClosedNotifiedRef.current = false
+        }
+    }, [anyUnlocked, visibleColumns, isEditable, resolveEditMode, row, autoClosedKeys, onRowAllEditorsClosed])
+
     const dragAttrs = {
         ...(attributes as any),
         tabIndex: -1
@@ -218,8 +257,9 @@ function DraggableRowInner<T extends object>(
                 const key = `${String(row.id)}::${col.id}`
                 const editable = isEditable(col)
                 const mode = editable ? resolveEditMode(col) : "off"
+                const isUnlockTransition = !prevUnlockedRef.current && anyUnlocked
                 const initiallyUnlockedActive =
-                    mode === "unlocked" && !autoClosedKeys.has(key)
+                    mode === "unlocked" && (!autoClosedKeys.has(key) || isUnlockTransition)
                 const always = mode === "locked"
                 const isActive =
                     always || editingKey === key || initiallyUnlockedActive
@@ -292,6 +332,47 @@ function DraggableRowInner<T extends object>(
                             size,
                             content
                         )}
+                        {/**
+                         * Place draggable drop zones and overlays inside the first cell
+                         * so that no divs appear directly under <tr> (invalid HTML).
+                         * These elements are absolutely positioned relative to the row.
+                         */}
+                        {idx === 0 && !readOnly && (
+                            <>
+                                <Box
+                                    ref={setInsideRef}
+                                    sx={{
+                                        position: "absolute",
+                                        left: 0,
+                                        right: 0,
+                                        top: "33.333%",
+                                        bottom: "33.333%",
+                                        pointerEvents: activeId ? "auto" : "none",
+                                        display: insideAllowed ? "block" : "none"
+                                    }}
+                                />
+                                {activeId && insideAllowed && isInsideOver && (
+                                    <Box
+                                        sx={(theme) => ({
+                                            position: "absolute",
+                                            left: 0,
+                                            right: 0,
+                                            top: 0,
+                                            bottom: 0,
+                                            pointerEvents: "none",
+                                            backgroundColor: theme.palette.primary.light,
+                                            zIndex: 1
+                                        })}
+                                    />
+                                )}
+                                <DropEdgeOverlays
+                                    rowId={draggableId}
+                                    allowedBefore={!!activeId && beforeAllowed}
+                                    allowedAfter={!!activeId && afterAllowed}
+                                    isActiveDrag={!!activeId}
+                                />
+                            </>
+                        )}
                         {!!col.editor && editable && !always && !isActive && (
                             <IconButton
                                 size="small"
@@ -320,44 +401,6 @@ function DraggableRowInner<T extends object>(
                 <TableCell key="__actions" align="right">
                     {getRowActions(row)}
                 </TableCell>
-            )}
-
-            {!readOnly && (
-                <>
-                    <Box
-                        ref={setInsideRef}
-                        sx={{
-                            position: "absolute",
-                            left: 0,
-                            right: 0,
-                            top: "33.333%",
-                            bottom: "33.333%",
-                            pointerEvents: activeId ? "auto" : "none",
-                            display: insideAllowed ? "block" : "none"
-                        }}
-                    />
-                    {/* Inside highlight overlay (covers entire row when hovering middle zone) */}
-                    {activeId && insideAllowed && isInsideOver && (
-                        <Box
-                            sx={(theme) => ({
-                                position: "absolute",
-                                left: 0,
-                                right: 0,
-                                top: 0,
-                                bottom: 0,
-                                pointerEvents: "none",
-                                backgroundColor: theme.palette.primary.light,
-                                zIndex: 1
-                            })}
-                        />
-                    )}
-                    <DropEdgeOverlays
-                        rowId={draggableId}
-                        allowedBefore={!!activeId && beforeAllowed}
-                        allowedAfter={!!activeId && afterAllowed}
-                        isActiveDrag={!!activeId}
-                    />
-                </>
             )}
         </TableRow>
     )

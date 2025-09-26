@@ -13,4 +13,5 @@ export declare function useInlineEditing<T extends object>(): {
     readonly autoClosedKeys: Set<string>;
     readonly startEdit: (row: RowModel<T>, column: ColumnDef<T>) => void;
     readonly markAutoClosed: (key: string) => void;
+    readonly clearAutoClosedForRow: (rowId: string) => void;
 };

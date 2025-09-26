@@ -69,8 +69,9 @@ export function ExampleLineItemsTable() {
     const [duplicateLineItems, { isLoading: isDuplicating }] = useDuplicateLineItemsMutation();
     const [view, setView] = useViewMode();
     const isCustomer = view === 'customer';
-    const [editingNameRowId, setEditingNameRowId] = React.useState(null);
-    const columns = React.useMemo(() => buildColumns(editingNameRowId, setEditingNameRowId, { includeTotals: true, language: 'de-DE', currency: 'EUR' }), [editingNameRowId]);
+    // Row-level edit toggle: when set to a row id, all editable cells in that row are unlocked
+    const [editingRowId, setEditingRowId] = React.useState(null);
+    const columns = React.useMemo(() => buildColumns(editingRowId, setEditingRowId, { includeTotals: true, language: 'de-DE', currency: 'EUR' }), [editingRowId]);
     const getRowCanDrag = React.useCallback((row) => {
         if (row.draggable === false)
             return false;
@@ -113,7 +114,8 @@ export function ExampleLineItemsTable() {
                     const lineItemId = row.id;
                     const prop = (_a = COLUMN_PROP_MAP[column.id]) !== null && _a !== void 0 ? _a : column.id;
                     await updateLineItem({ lineItemId, properties: { [prop]: next } });
-                    setEditingNameRowId((curr) => (curr === row.id ? null : curr));
-                }, getRowActions: !isCustomer ? ((row) => (_jsx(RowActions, { row: row, isDuplicating: isDuplicating, isDeleting: isDeleting, confirmDelete: true, onEdit: () => setEditingNameRowId(row.id), onDuplicate: async () => { await duplicateLineItems({ selectedLineItemIds: [row.id] }); }, onDelete: async () => { await deleteLineItems({ selectedLineItemIds: [row.id] }); } }))) : undefined, getRowCanDrag: !isCustomer ? getRowCanDrag : undefined, getRowCanDrop: !isCustomer ? getRowCanDrop : undefined, onDrop: !isCustomer ? handleDrop : undefined })] }));
+                }, onRowAllEditorsClosed: (row) => {
+                    setEditingRowId((curr) => (curr === row.id ? null : curr));
+                }, getRowActions: !isCustomer ? ((row) => (_jsx(RowActions, { row: row, isEditing: editingRowId === row.id, isDuplicating: isDuplicating, isDeleting: isDeleting, confirmDelete: true, onEdit: () => setEditingRowId((curr) => (curr === row.id ? null : row.id)), onDuplicate: async () => { await duplicateLineItems({ selectedLineItemIds: [row.id] }); }, onDelete: async () => { await deleteLineItems({ selectedLineItemIds: [row.id] }); } }))) : undefined, getRowCanDrag: !isCustomer ? getRowCanDrag : undefined, getRowCanDrop: !isCustomer ? getRowCanDrop : undefined, onDrop: !isCustomer ? handleDrop : undefined })] }));
 }
 export default ExampleLineItemsTable;

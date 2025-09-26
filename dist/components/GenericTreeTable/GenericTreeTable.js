@@ -8,7 +8,7 @@ import { buildRowIndexMap, buildVisibleRows, getVisibleColumns, collectExpandabl
 import { useDragSensors, useExpandedRows, useInlineEditing, useValidTargets } from "./hooks.js";
 import { createCollisionDetector } from "./genericTable.collision.js";
 export function GenericTreeTable(props) {
-    const { rows, columns, size = "medium", expandedRowIds, onRowToggle, getRowActions, getTableRowChildren, getRowCanDrag, getRowCanDrop, onDrop, getValidDropTargets, viewMode, actionsHeader } = props;
+    const { rows, columns, size = "medium", expandedRowIds, onRowToggle, getRowActions, getTableRowChildren, getRowCanDrag, getRowCanDrop, onDrop, getValidDropTargets, viewMode, actionsHeader, onRowAllEditorsClosed } = props;
     const readOnly = !!props.readOnly;
     const expandableRowIds = useMemo(() => collectExpandableRowIds(rows || []), [rows]);
     const { expanded, toggle } = useExpandedRows(expandedRowIds, onRowToggle, expandableRowIds);
@@ -22,7 +22,7 @@ export function GenericTreeTable(props) {
     const [activeId, setActiveId] = useState(null);
     const validTargets = useValidTargets(activeId, byKey, getValidDropTargets);
     const sensors = useDragSensors(props.dragActivation);
-    const { editingKey, setEditingKey, editingValue, setEditingValue, autoClosedKeys, markAutoClosed, startEdit } = useInlineEditing();
+    const { editingKey, setEditingKey, editingValue, setEditingValue, autoClosedKeys, markAutoClosed, clearAutoClosedForRow, startEdit } = useInlineEditing();
     const collisionDetection = useMemo(() => createCollisionDetector({
         activeId,
         byKey,
@@ -60,5 +60,5 @@ export function GenericTreeTable(props) {
             return;
         onDrop === null || onDrop === void 0 ? void 0 : onDrop(sourceRow.id, targetRow.id, position);
     }, [byKey, getRowCanDrop, onDrop, validTargets]);
-    return (_jsx(TableContainer, { children: _jsxs(DndContext, { sensors: sensors, collisionDetection: collisionDetection, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: [_jsxs(Table, { size: size, role: "treegrid", "aria-readonly": readOnly || undefined, children: [_jsx(TableHead, { children: _jsxs(TableRow, { children: [visibleColumns.map((col) => (_jsx(TableCell, { align: col.align, style: { width: col.width }, children: col.header }, col.id))), getRowActions && (_jsx(TableCell, { align: "right", children: actionsHeader !== null && actionsHeader !== void 0 ? actionsHeader : "" }, "__actions"))] }) }), _jsxs(TableBody, { children: [visible.map((vr) => (_jsx(DraggableRow, { data: vr, visibleColumns: visibleColumns, size: size, readOnly: readOnly, getRowCanDrag: getRowCanDrag, getRowCanDrop: getRowCanDrop, validTargets: validTargets, activeId: activeId, byKey: byKey, toggle: toggle, viewMode: viewMode, getRowActions: getRowActions, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, autoClosedKeys: autoClosedKeys, markAutoClosed: markAutoClosed, startEdit: startEdit, onEditCommit: props.onEditCommit }, String(vr.row.id)))), getTableRowChildren && getTableRowChildren(rows, viewMode)] })] }), _jsx(DragOverlay, { children: _jsx(DragOverlayContent, { activeId: activeId, byKey: byKey, visible: visible, columns: visibleColumns, size: size }) })] }) }));
+    return (_jsx(TableContainer, { children: _jsxs(DndContext, { sensors: sensors, collisionDetection: collisionDetection, onDragStart: handleDragStart, onDragEnd: handleDragEnd, children: [_jsxs(Table, { size: size, role: "treegrid", "aria-readonly": readOnly || undefined, children: [_jsx(TableHead, { children: _jsxs(TableRow, { children: [visibleColumns.map((col) => (_jsx(TableCell, { align: col.align, style: { width: col.width }, children: col.header }, col.id))), getRowActions && (_jsx(TableCell, { align: "right", children: actionsHeader !== null && actionsHeader !== void 0 ? actionsHeader : "" }, "__actions"))] }) }), _jsxs(TableBody, { children: [visible.map((vr) => (_jsx(DraggableRow, { data: vr, visibleColumns: visibleColumns, size: size, readOnly: readOnly, getRowCanDrag: getRowCanDrag, getRowCanDrop: getRowCanDrop, validTargets: validTargets, activeId: activeId, byKey: byKey, toggle: toggle, viewMode: viewMode, getRowActions: getRowActions, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, autoClosedKeys: autoClosedKeys, markAutoClosed: markAutoClosed, clearAutoClosedForRow: clearAutoClosedForRow, startEdit: startEdit, onEditCommit: props.onEditCommit, onRowAllEditorsClosed: onRowAllEditorsClosed }, String(vr.row.id)))), getTableRowChildren && getTableRowChildren(rows, viewMode)] })] }), _jsx(DragOverlay, { children: _jsx(DragOverlayContent, { activeId: activeId, byKey: byKey, visible: visible, columns: visibleColumns, size: size }) })] }) }));
 }

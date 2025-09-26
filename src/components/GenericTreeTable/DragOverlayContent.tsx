@@ -58,16 +58,7 @@ export function DragOverlayContent<T extends object>({
                     <TableBody>
                         <TableRow>
                             {columns.map((col, idx) => {
-                                const content = (
-                                    <TableCell>
-                                        <ViewCell
-                                        row={activeRow}
-                                        col={col}
-                                        level={level}
-                                    />
-                                    </TableCell>
-                                )
-                                return IndentedCell(
+                                const cellContent = IndentedCell(
                                     activeRow,
                                     col,
                                     level,
@@ -77,30 +68,33 @@ export function DragOverlayContent<T extends object>({
                                     undefined,
                                     <IconButton
                                         size={
-                                            size === "small"
-                                                ? "small"
-                                                : "medium"
+                                            size === "small" ? "small" : "medium"
                                         }
                                         disableRipple
                                         disableFocusRipple
                                         sx={{
                                             mr: 1,
                                             cursor: "grabbing",
-                                            "&:focus,&:focus-visible": {
-                                                outline: "none"
-                                            }
+                                            "&:focus,&:focus-visible": { outline: "none" }
                                         }}
                                     >
                                         <DragIndicatorIcon
                                             fontSize={
-                                                size === "small"
-                                                    ? "small"
-                                                    : "medium"
+                                                size === "small" ? "small" : "medium"
                                             }
                                         />
                                     </IconButton>,
                                     size,
-                                    content
+                                    <ViewCell row={activeRow} col={col} level={level} />
+                                )
+                                return (
+                                    <TableCell
+                                        key={col.id}
+                                        align={col.align}
+                                        style={{ width: col.width }}
+                                    >
+                                        {cellContent}
+                                    </TableCell>
                                 )
                             })}
                         </TableRow>

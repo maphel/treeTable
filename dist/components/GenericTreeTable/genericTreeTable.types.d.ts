@@ -109,6 +109,12 @@ export type TreeTableProps<T extends object> = {
      * - Resolve to close the editor; throw/reject to keep it open and surface error.
      */
     onEditCommit?: (row: RowModel<T>, column: ColumnDef<T>, nextValue: unknown) => Promise<void> | void;
+    /**
+     * Optional: called when a row that is in 'unlocked' edit mode has all its
+     * editable cells closed (committed or cancelled). Useful to auto-exit
+     * row-level edit mode in your app state.
+     */
+    onRowAllEditorsClosed?: (row: RowModel<T>) => void;
 };
 /** Options to configure pointer drag activation behavior. */
 export type DragActivationOptions = {

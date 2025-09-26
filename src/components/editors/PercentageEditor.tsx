@@ -110,7 +110,6 @@ export default function PercentageEditor({
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
-            // No need to mutate text on focus; we render the % symbol in value
             autoFocus={autoFocus}
             inputRef={inputRef}
             fullWidth

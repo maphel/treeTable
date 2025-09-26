@@ -19,8 +19,10 @@ export type DraggableRowProps<T extends object> = {
     setEditingValue: Dispatch<SetStateAction<any>>;
     autoClosedKeys: Set<string>;
     markAutoClosed: (key: string) => void;
+    clearAutoClosedForRow: (rowId: string) => void;
     startEdit: (row: RowModel<T>, column: ColumnDef<T>) => void;
     onEditCommit?: (row: RowModel<T>, column: ColumnDef<T>, next: unknown) => Promise<void> | void;
+    onRowAllEditorsClosed?: (row: RowModel<T>) => void;
 };
 declare function DraggableRowInner<T extends object>(props: DraggableRowProps<T>): import("react/jsx-runtime").JSX.Element;
 declare const DraggableRow: typeof DraggableRowInner;

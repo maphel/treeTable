@@ -1,4 +1,4 @@
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { DragIndicator as DragIndicatorIcon, EditOutlined as EditOutlinedIcon } from "@mui/icons-material";
@@ -9,7 +9,7 @@ import EditorCell from "./EditorCell.js";
 import IndentedCell from "./IndentedCell.js";
 import ViewCell from "./ViewCell.js";
 function DraggableRowInner(props) {
-    const { data, visibleColumns, size, readOnly, getRowCanDrag, getRowCanDrop, validTargets, activeId, byKey, toggle, viewMode, getRowActions, editingKey, editingValue, setEditingKey, setEditingValue, autoClosedKeys, markAutoClosed, startEdit, onEditCommit } = props;
+    const { data, visibleColumns, size, readOnly, getRowCanDrag, getRowCanDrop, validTargets, activeId, byKey, toggle, viewMode, getRowActions, editingKey, editingValue, setEditingKey, setEditingValue, autoClosedKeys, markAutoClosed, clearAutoClosedForRow, startEdit, onEditCommit, onRowAllEditorsClosed } = props;
     const { row, level, hasChildren, expanded: isExpanded } = data;
     const draggableId = String(row.id);
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: draggableId });
@@ -96,6 +96,38 @@ function DraggableRowInner(props) {
             return "locked";
         return "off";
     }, [row, viewMode, isEditable]);
+    // When row transitions from no-unlocked-cells to unlocked-cells, we reset the
+    // autoClosed flags for this row so all cells re-open on next render.
+    const anyUnlocked = useMemo(() => visibleColumns.some((c) => isEditable(c) && resolveEditMode(c) === "unlocked"), [visibleColumns, isEditable, resolveEditMode]);
+    const prevUnlockedRef = React.useRef(false);
+    useEffect(() => {
+        if (!prevUnlockedRef.current && anyUnlocked) {
+            clearAutoClosedForRow(String(row.id));
+        }
+        prevUnlockedRef.current = anyUnlocked;
+    }, [anyUnlocked, clearAutoClosedForRow, row.id]);
+    // When all unlocked cells have been auto-closed, notify parent so it can
+    // clear external row-level edit state if desired.
+    const allClosedNotifiedRef = React.useRef(false);
+    useEffect(() => {
+        if (!anyUnlocked) {
+            allClosedNotifiedRef.current = false;
+            return;
+        }
+        const unlockedKeys = visibleColumns
+            .filter((c) => isEditable(c) && resolveEditMode(c) === "unlocked")
+            .map((c) => `${String(row.id)}::${c.id}`);
+        if (unlockedKeys.length === 0)
+            return;
+        const allClosed = unlockedKeys.every((k) => autoClosedKeys.has(k));
+        if (allClosed && !allClosedNotifiedRef.current) {
+            onRowAllEditorsClosed === null || onRowAllEditorsClosed === void 0 ? void 0 : onRowAllEditorsClosed(row);
+            allClosedNotifiedRef.current = true;
+        }
+        else if (!allClosed) {
+            allClosedNotifiedRef.current = false;
+        }
+    }, [anyUnlocked, visibleColumns, isEditable, resolveEditMode, row, autoClosedKeys, onRowAllEditorsClosed]);
     const dragAttrs = {
         ...attributes,
         tabIndex: -1
@@ -123,7 +155,8 @@ function DraggableRowInner(props) {
                 const key = `${String(row.id)}::${col.id}`;
                 const editable = isEditable(col);
                 const mode = editable ? resolveEditMode(col) : "off";
-                const initiallyUnlockedActive = mode === "unlocked" && !autoClosedKeys.has(key);
+                const isUnlockTransition = !prevUnlockedRef.current && anyUnlocked;
+                const initiallyUnlockedActive = mode === "unlocked" && (!autoClosedKeys.has(key) || isUnlockTransition);
                 const always = mode === "locked";
                 const isActive = always || editingKey === key || initiallyUnlockedActive;
                 const content = isActive ? (_jsx(EditorCell, { row: row, col: col, mode: mode, cellKey: key, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, markAutoClosed: markAutoClosed, onEditCommit: onEditCommit })) : (_jsx(ViewCell, { row: row, col: col, level: level }));
@@ -143,7 +176,24 @@ function DraggableRowInner(props) {
                                 }
                             }, ...dragAttrs, ...listeners, children: _jsx(DragIndicatorIcon, { fontSize: size === "small"
                                     ? "small"
-                                    : "medium" }) })) : undefined, size, content), !!col.editor && editable && !always && !isActive && (_jsx(IconButton, { size: "small", className: "cell-edit-btn", "aria-label": "Edit", onClick: (e) => {
+                                    : "medium" }) })) : undefined, size, content), idx === 0 && !readOnly && (_jsxs(_Fragment, { children: [_jsx(Box, { ref: setInsideRef, sx: {
+                                        position: "absolute",
+                                        left: 0,
+                                        right: 0,
+                                        top: "33.333%",
+                                        bottom: "33.333%",
+                                        pointerEvents: activeId ? "auto" : "none",
+                                        display: insideAllowed ? "block" : "none"
+                                    } }), activeId && insideAllowed && isInsideOver && (_jsx(Box, { sx: (theme) => ({
+                                        position: "absolute",
+                                        left: 0,
+                                        right: 0,
+                                        top: 0,
+                                        bottom: 0,
+                                        pointerEvents: "none",
+                                        backgroundColor: theme.palette.primary.light,
+                                        zIndex: 1
+                                    }) })), _jsx(DropEdgeOverlays, { rowId: draggableId, allowedBefore: !!activeId && beforeAllowed, allowedAfter: !!activeId && afterAllowed, isActiveDrag: !!activeId })] })), !!col.editor && editable && !always && !isActive && (_jsx(IconButton, { size: "small", className: "cell-edit-btn", "aria-label": "Edit", onClick: (e) => {
                                 e.stopPropagation();
                                 startEdit(row, col);
                             }, sx: {
@@ -154,24 +204,7 @@ function DraggableRowInner(props) {
                                 opacity: 0,
                                 transition: "opacity 120ms"
                             }, children: _jsx(EditOutlinedIcon, { fontSize: "small" }) }))] }, col.id));
-            }), getRowActions && (_jsx(TableCell, { align: "right", children: getRowActions(row) }, "__actions")), !readOnly && (_jsxs(_Fragment, { children: [_jsx(Box, { ref: setInsideRef, sx: {
-                            position: "absolute",
-                            left: 0,
-                            right: 0,
-                            top: "33.333%",
-                            bottom: "33.333%",
-                            pointerEvents: activeId ? "auto" : "none",
-                            display: insideAllowed ? "block" : "none"
-                        } }), activeId && insideAllowed && isInsideOver && (_jsx(Box, { sx: (theme) => ({
-                            position: "absolute",
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                            pointerEvents: "none",
-                            backgroundColor: theme.palette.primary.light,
-                            zIndex: 1
-                        }) })), _jsx(DropEdgeOverlays, { rowId: draggableId, allowedBefore: !!activeId && beforeAllowed, allowedAfter: !!activeId && afterAllowed, isActiveDrag: !!activeId })] }))] }, String(row.id)));
+            }), getRowActions && (_jsx(TableCell, { align: "right", children: getRowActions(row) }, "__actions"))] }, String(row.id)));
 }
 const DraggableRow = React.memo(DraggableRowInner);
 export default DraggableRow;
