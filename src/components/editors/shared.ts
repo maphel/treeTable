@@ -28,10 +28,39 @@ export function useSelectOnAutoFocus<T extends HTMLInputElement>(
 ) {
   const ref = useRef<T | null>(null)
   useEffect(() => {
-    if (autoFocus && ref.current) {
+    const el = ref.current
+    if (!autoFocus || !el) return
+
+    let rafId: number | null = null
+    let ran = false
+    const selectAll = () => {
       try {
-        ref.current.select()
+        el.select()
       } catch {}
+    }
+
+    const onFocus = () => {
+      if (ran) return
+      ran = true
+      // Defer selection to the next frame to avoid being overridden
+      rafId = requestAnimationFrame(() => {
+        selectAll()
+      })
+    }
+
+    el.addEventListener('focus', onFocus)
+
+    // If already focused (rare), still defer selection to next frame
+    if (document.activeElement === el) {
+      ran = true
+      rafId = requestAnimationFrame(() => {
+        selectAll()
+      })
+    }
+
+    return () => {
+      el.removeEventListener('focus', onFocus)
+      if (rafId !== null) cancelAnimationFrame(rafId)
     }
   }, [autoFocus])
   return ref
@@ -82,4 +111,3 @@ export function restoreCaretByUnits(
     input.setSelectionRange(newPos, newPos)
   } catch {}
 }
-
