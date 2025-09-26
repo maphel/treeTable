@@ -5,9 +5,11 @@ import Inventory2Icon from '@mui/icons-material/Inventory2';
 import ExtensionIcon from '@mui/icons-material/Extension';
 import DescriptionIcon from '@mui/icons-material/Description';
 
-import type { ColumnDef, RowId } from '../../components/TreeTable/types';
-import { CurrencyInput, NumberEditor, TextEditor } from '../../components/editors';
-import { formatCurrency, parseCurrency } from '../../components/formatters';
+import type { ColumnDef } from '../../components/GenericTreeTable/genericTreeTable.types';
+import TextEditor from '../../components/editors/TextEditor';
+import NumberEditor from '../../components/editors/NumberEditor';
+import { formatCurrency, parseCurrency } from '../../components/formatters/currency';
+import CurrencyEditor from '../../components/editors/CurrencyEditor';
 
 export type RowData = {
   name: string;
@@ -27,13 +29,10 @@ export function TypeIcon({ type }: { type: string }) {
 }
 
 export function buildColumns(
-  editingNameRowId: RowId | null,
-  setEditingNameRowId: React.Dispatch<React.SetStateAction<RowId | null>>,
+  editingNameRowId: string | null,
+  setEditingNameRowId: React.Dispatch<React.SetStateAction<string | null>>,
   options: { includeTotals?: boolean } = {}
 ): ColumnDef<RowData>[] {
-  const CurrencyEditor: ColumnDef<RowData>['editor'] = ({ value, onChange, commit, cancel, autoFocus }) => (
-    <CurrencyInput value={value as any} onChange={(s) => onChange(s)} onCommit={commit} onCancel={cancel} autoFocus={autoFocus} locale="de-DE" currency="EUR" />
-  );
 
   const cols: ColumnDef<RowData>[] = [
     {
