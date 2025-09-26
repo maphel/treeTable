@@ -102,7 +102,6 @@ function DraggableRowInner(props) {
     useEffect(() => {
         if (!prevUnlockedRef.current && anyUnlocked) {
             clearAutoClosedForRow(String(row.id));
-            // Prevent immediate re-close: skip one all-closed check right after unlocking
             suppressAllClosedRef.current = true;
         }
         prevUnlockedRef.current = anyUnlocked;
@@ -114,7 +113,6 @@ function DraggableRowInner(props) {
             return;
         }
         if (suppressAllClosedRef.current) {
-            // Skip this evaluation once, right after unlocking
             suppressAllClosedRef.current = false;
             return;
         }
@@ -163,10 +161,7 @@ function DraggableRowInner(props) {
                 const initiallyUnlockedActive = mode === "unlocked" && (!autoClosedKeys.has(key) || isUnlockTransition);
                 const always = mode === "locked";
                 const isActive = always || editingKey === key || initiallyUnlockedActive;
-                const content = isActive ? (_jsx(EditorCell, { row: row, col: col, mode: mode, cellKey: key, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, markAutoClosed: markAutoClosed, onEditCommit: onEditCommit })) : (
-                // Wrap view content to enable click-to-edit; show pointer when editable
-                _jsx(Box, { onMouseDown: (e) => {
-                        // Start edit early in the pointer sequence to avoid blur race
+                const content = isActive ? (_jsx(EditorCell, { row: row, col: col, mode: mode, cellKey: key, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, markAutoClosed: markAutoClosed, onEditCommit: onEditCommit })) : (_jsx(Box, { onMouseDown: (e) => {
                         if (!always && editable) {
                             e.preventDefault();
                             startEdit(row, col);

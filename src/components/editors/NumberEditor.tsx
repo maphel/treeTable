@@ -1,5 +1,6 @@
 import { TextField } from "@mui/material"
 import { useEffect, useState } from "react"
+import { useCommitCancelHandlers, useSelectOnAutoFocus } from "./shared.js"
 
 
 export type NumberEditorProps = {
@@ -27,6 +28,8 @@ export default function NumberEditor({
     useEffect(() => {
         setText(value == null ? "" : String(value))
     }, [value])
+    const ref = useSelectOnAutoFocus<HTMLInputElement>(autoFocus)
+    const { onKeyDown, onBlur } = useCommitCancelHandlers(onCommit, onCancel)
     const parse = (s: string): number | undefined => {
         const n = parseFloat(s.replace(",", "."))
         return Number.isFinite(n) ? n : undefined
@@ -36,21 +39,13 @@ export default function NumberEditor({
             variant="standard"
             size="small"
             value={text}
+            inputRef={ref}
             onChange={(e) => {
                 setText(e.target.value)
                 onChange(parse(e.target.value))
             }}
-            onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                    e.preventDefault()
-                    onCommit?.()
-                }
-                if (e.key === "Escape") {
-                    e.preventDefault()
-                    onCancel?.()
-                }
-            }}
-            onBlur={() => onCommit?.()}
+            onKeyDown={onKeyDown}
+            onBlur={onBlur}
             autoFocus={autoFocus}
             inputProps={{ inputMode: "decimal", step, min, max }}
             fullWidth
