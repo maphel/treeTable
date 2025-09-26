@@ -48,13 +48,14 @@ export function buildColumns(
       getIsEditable: (row) => row.type === 'custom' && (row.propertyPermissions?.name ?? true),
       editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
       autoCommitOnChange: (row) => row.id === editingRowId,
-      editor: ({ value, onChange, commit, cancel, autoFocus }) => (
+      editor: ({ value, onChange, commit, cancel, autoFocus, size }) => (
         <TextEditor
           value={value}
           onChange={onChange as any}
           onCommit={commit}
           onCancel={cancel}
           autoFocus={autoFocus}
+          size={size}
         />
       ),
       cell: ({ row, value }) => (
@@ -71,13 +72,14 @@ export function buildColumns(
       width: 120,
       getIsEditable: (row) => row.type !== 'folder' && (row.propertyPermissions?.quantity ?? true),
       editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
-      editor: ({ value, onChange, commit, cancel, autoFocus }) => (
+      editor: ({ value, onChange, commit, cancel, autoFocus, size }) => (
         <NumberEditor
           value={typeof value === 'number' ? value : undefined}
           onChange={onChange}
           onCommit={commit}
           onCancel={cancel}
           autoFocus={autoFocus}
+          size={size}
           step={1}
           min={0}
         />
@@ -92,13 +94,14 @@ export function buildColumns(
       getIsEditable: (row) => row.type !== 'folder' && (row.propertyPermissions?.unitPrice ?? true),
       getIsVisible: (vm) => vm !== 'customer',
       editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
-      editor: ({ value, onChange, commit, cancel, autoFocus }) => (
+      editor: ({ value, onChange, commit, cancel, autoFocus, size }) => (
         <CurrencyEditor 
         value={value as any}
          onChange={onChange as any} 
          onCommit={commit} 
          onCancel={cancel} 
          autoFocus={autoFocus}
+         size={size}
           locale={language} 
           currency={currency}
            />
@@ -114,13 +117,14 @@ export function buildColumns(
       getIsEditable: (row) => row.type !== 'folder',
       getIsVisible: (vm) => vm !== 'customer',
       editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
-      editor: ({ value, onChange, commit, cancel, autoFocus }) => (
+      editor: ({ value, onChange, commit, cancel, autoFocus, size }) => (
         <PercentageEditor
           value={typeof value === 'number' ? (value as number) : undefined}
           onChange={onChange as any}
           onCommit={commit}
           onCancel={cancel}
           autoFocus={autoFocus}
+          size={size}
           locale={options.language}
           min={0}
           max={100}

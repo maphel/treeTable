@@ -8,5 +8,6 @@ export type PercentageEditorProps = {
     max?: number;
     step?: number;
     locale?: string;
+    size?: "small" | "medium";
 };
-export default function PercentageEditor({ value, onChange, onCommit, onCancel, autoFocus, min, max, step, locale }: PercentageEditorProps): import("react/jsx-runtime").JSX.Element;
+export default function PercentageEditor({ value, onChange, onCommit, onCancel, autoFocus, min, max, step, locale, size }: PercentageEditorProps): import("react/jsx-runtime").JSX.Element;

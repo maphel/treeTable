@@ -8,6 +8,7 @@ export type TextEditorProps = {
     onCommit?: () => void
     onCancel?: () => void
     autoFocus?: boolean
+    size?: "small" | "medium"
 }
 
 export default function TextEditor({
@@ -15,7 +16,8 @@ export default function TextEditor({
     onChange,
     onCommit,
     onCancel,
-    autoFocus
+    autoFocus,
+    size = "medium"
 }: TextEditorProps) {
     const ref = useSelectOnAutoFocus<HTMLInputElement>(autoFocus)
     const { onKeyDown, onBlur } = useCommitCancelHandlers(onCommit, onCancel)
@@ -23,7 +25,7 @@ export default function TextEditor({
     return (
         <TextField
             variant="standard"
-            size="small"
+            size={size}
             margin="dense"
             value={typeof value === "string" ? value : value ?? ""}
             inputRef={ref}

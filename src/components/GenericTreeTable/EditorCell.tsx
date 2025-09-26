@@ -22,6 +22,7 @@ export type EditorCellProps<T extends object> = {
     setEditingKey: Dispatch<SetStateAction<string | null>>
     setEditingValue: Dispatch<SetStateAction<any>>
     markAutoClosed: (key: string) => void
+    size?: "small" | "medium"
     onEditCommit?: (
         row: RowModel<T>,
         column: ColumnDef<T>,
@@ -39,7 +40,8 @@ export default function EditorCell<T extends object>({
     setEditingKey,
     setEditingValue,
     markAutoClosed,
-    onEditCommit
+    onEditCommit,
+    size = "medium"
 }: EditorCellProps<T>) {
     const key = cellKey
     const raw = getNestedValue(row, col.id)
@@ -151,7 +153,8 @@ export default function EditorCell<T extends object>({
                 onChange: handleChange,
                 commit: () => void commit(),
                 cancel,
-                autoFocus: !always && editingKey === key
+                autoFocus: !always && editingKey === key,
+                size
             })}
         </Box>
     )

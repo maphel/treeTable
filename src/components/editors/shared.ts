@@ -92,13 +92,26 @@ export function countUnitsBeforeCaret(
 // Compact TextField styles for dense table cells
 export const compactTextFieldSx: SxProps<Theme> = {
   '& .MuiInputBase-root': {
-    fontSize: 13,
+    fontSize: 15,
+    lineHeight: 1.2,
+    minHeight: 0,
+  },
+    '& .MuiInputBase-input': {
+    padding: 0, 
+    margin: 0,
+  },
+  '& .MuiInput-underline:before': {
+    borderBottomWidth: 1,
+  },
+  '& .MuiInput-underline:after': {
+    borderBottomWidth: 1,
   },
   '& .MuiInputAdornment-root': {
-    margin: 0,
     '& .MuiTypography-root': {
-      fontSize: 12,
-      lineHeight: 1.2,
+      padding: "0 5px",
+      fontSize: 14,
+      lineHeight: 1,
+      color: "black"
     },
   },
 }

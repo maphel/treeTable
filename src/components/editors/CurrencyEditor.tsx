@@ -16,6 +16,7 @@ export type CurrencyInputProps = {
   autoFocus?: boolean;
   locale?: string;
   currency?: string;
+  size?: "small" | "medium";
 };
 
 export default function CurrencyEditor({
@@ -26,6 +27,7 @@ export default function CurrencyEditor({
   autoFocus,
   locale = 'de-DE',
   currency = 'EUR',
+  size = 'medium',
 }: CurrencyInputProps) {
   const inputRef = useSelectOnAutoFocus<HTMLInputElement>(autoFocus)
   const separators = React.useMemo(() => getLocaleSeparators(locale, currency), [locale, currency]);
@@ -69,7 +71,7 @@ export default function CurrencyEditor({
   return (
     <TextField
       variant="standard"
-      size="small"
+      size={size}
       margin="dense"
       value={displayValue}
       onChange={handleChange}

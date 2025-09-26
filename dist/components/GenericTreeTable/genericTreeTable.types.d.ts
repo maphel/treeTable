@@ -94,6 +94,8 @@ export type ColumnDef<T extends object> = {
         commit: () => void;
         cancel: () => void;
         autoFocus?: boolean;
+        /** Inherit table density for editor inputs. */
+        size: "small" | "medium";
     }) => React.ReactNode;
     /**
      * Per-row predicate to decide whether the cell is editable.

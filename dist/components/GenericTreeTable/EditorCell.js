@@ -2,7 +2,7 @@ import { jsx as _jsx } from "react/jsx-runtime";
 import { Box } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getNestedValue } from "./genericTreeTable.utils.js";
-export default function EditorCell({ row, col, mode, cellKey, editingKey, editingValue, setEditingKey, setEditingValue, markAutoClosed, onEditCommit }) {
+export default function EditorCell({ row, col, mode, cellKey, editingKey, editingValue, setEditingKey, setEditingValue, markAutoClosed, onEditCommit, size = "medium" }) {
     const key = cellKey;
     const raw = getNestedValue(row, col.id);
     const always = mode === "locked";
@@ -101,6 +101,7 @@ export default function EditorCell({ row, col, mode, cellKey, editingKey, editin
             onChange: handleChange,
             commit: () => void commit(),
             cancel,
-            autoFocus: !always && editingKey === key
+            autoFocus: !always && editingKey === key,
+            size
         }) }));
 }

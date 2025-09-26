@@ -8,7 +8,7 @@ function formatValue(value, locale) {
         return "";
     return formatPercentValue(value, locale);
 }
-export default function PercentageEditor({ value, onChange, onCommit, onCancel, autoFocus, min, max, step, locale = "de-DE" }) {
+export default function PercentageEditor({ value, onChange, onCommit, onCancel, autoFocus, min, max, step, locale = "de-DE", size = "medium" }) {
     const inputRef = useSelectOnAutoFocus(autoFocus);
     const [text, setText] = useState(formatValue(value, locale));
     const separators = useMemo(() => getLocaleSeparators(locale), [locale]);
@@ -38,7 +38,7 @@ export default function PercentageEditor({ value, onChange, onCommit, onCancel, 
             restoreCaretByUnits(el, unitsLeft, dec, true);
         });
     };
-    return (_jsx(TextField, { variant: "standard", size: "small", margin: "dense", value: text, onChange: handleChange, onKeyDown: onKeyDown, onBlur: onBlur, autoFocus: autoFocus, inputRef: inputRef, fullWidth: true, InputProps: {
+    return (_jsx(TextField, { variant: "standard", size: size, margin: "dense", value: text, onChange: handleChange, onKeyDown: onKeyDown, onBlur: onBlur, autoFocus: autoFocus, inputRef: inputRef, fullWidth: true, InputProps: {
             endAdornment: (_jsx(InputAdornment, { position: "end", sx: { m: 0 }, children: "%" }))
         }, inputProps: {
             inputMode: "decimal",

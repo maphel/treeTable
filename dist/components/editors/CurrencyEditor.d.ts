@@ -6,5 +6,6 @@ export type CurrencyInputProps = {
     autoFocus?: boolean;
     locale?: string;
     currency?: string;
+    size?: "small" | "medium";
 };
-export default function CurrencyEditor({ value, onChange, onCommit, onCancel, autoFocus, locale, currency, }: CurrencyInputProps): import("react/jsx-runtime").JSX.Element;
+export default function CurrencyEditor({ value, onChange, onCommit, onCancel, autoFocus, locale, currency, size, }: CurrencyInputProps): import("react/jsx-runtime").JSX.Element;

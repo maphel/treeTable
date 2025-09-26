@@ -161,12 +161,16 @@ function DraggableRowInner(props) {
                 const initiallyUnlockedActive = mode === "unlocked" && (!autoClosedKeys.has(key) || isUnlockTransition);
                 const always = mode === "locked";
                 const isActive = always || editingKey === key || initiallyUnlockedActive;
-                const content = isActive ? (_jsx(EditorCell, { row: row, col: col, mode: mode, cellKey: key, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, markAutoClosed: markAutoClosed, onEditCommit: onEditCommit })) : (_jsx(Box, { onMouseDown: (e) => {
+                const content = isActive ? (_jsx(EditorCell, { row: row, col: col, mode: mode, cellKey: key, editingKey: editingKey, editingValue: editingValue, setEditingKey: setEditingKey, setEditingValue: setEditingValue, markAutoClosed: markAutoClosed, size: size, onEditCommit: onEditCommit })) : (_jsx(Box, { onMouseDown: (e) => {
                         if (!always && editable) {
                             e.preventDefault();
                             startEdit(row, col);
                         }
-                    }, sx: !!col.editor && editable && !always ? { '&:hover': { cursor: 'pointer' } } : undefined, children: _jsx(ViewCell, { row: row, col: col, level: level }) }));
+                    }, sx: !!col.editor && editable
+                        ? {
+                            ...(!always ? { '&:hover': { cursor: 'pointer' } } : undefined)
+                        }
+                        : { padding: "7px" }, children: _jsx(ViewCell, { row: row, col: col, level: level }) }));
                 return (_jsxs(TableCell, { align: col.align, style: { width: col.width, position: "relative" }, sx: undefined, children: [IndentedCell(row, col, level, idx === 0, hasChildren, isExpanded, hasChildren ? () => toggle(row.id) : undefined, idx === 0 && canDrag ? (_jsx(IconButton, { size: size === "small" ? "small" : "medium", disableRipple: true, disableFocusRipple: true, sx: {
                                 mr: 0.5,
                                 cursor: "grab",

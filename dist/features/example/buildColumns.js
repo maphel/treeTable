@@ -32,7 +32,7 @@ export function buildColumns(editingRowId, _setEditingRowId, options = {}) {
             getIsEditable: (row) => { var _a, _b; return row.type === 'custom' && ((_b = (_a = row.propertyPermissions) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : true); },
             editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
             autoCommitOnChange: (row) => row.id === editingRowId,
-            editor: ({ value, onChange, commit, cancel, autoFocus }) => (_jsx(TextEditor, { value: value, onChange: onChange, onCommit: commit, onCancel: cancel, autoFocus: autoFocus })),
+            editor: ({ value, onChange, commit, cancel, autoFocus, size }) => (_jsx(TextEditor, { value: value, onChange: onChange, onCommit: commit, onCancel: cancel, autoFocus: autoFocus, size: size })),
             cell: ({ row, value }) => (_jsxs(Box, { sx: { display: 'flex', alignItems: 'center', gap: 1 }, children: [_jsx(TypeIcon, { type: row.type }), _jsx(Box, { component: "span", sx: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }, children: String(value !== null && value !== void 0 ? value : '') })] })),
         },
         {
@@ -42,7 +42,7 @@ export function buildColumns(editingRowId, _setEditingRowId, options = {}) {
             width: 120,
             getIsEditable: (row) => { var _a, _b; return row.type !== 'folder' && ((_b = (_a = row.propertyPermissions) === null || _a === void 0 ? void 0 : _a.quantity) !== null && _b !== void 0 ? _b : true); },
             editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
-            editor: ({ value, onChange, commit, cancel, autoFocus }) => (_jsx(NumberEditor, { value: typeof value === 'number' ? value : undefined, onChange: onChange, onCommit: commit, onCancel: cancel, autoFocus: autoFocus, step: 1, min: 0 })),
+            editor: ({ value, onChange, commit, cancel, autoFocus, size }) => (_jsx(NumberEditor, { value: typeof value === 'number' ? value : undefined, onChange: onChange, onCommit: commit, onCancel: cancel, autoFocus: autoFocus, size: size, step: 1, min: 0 })),
             valueFormatter: (v) => (typeof v === 'number' ? String(v) : ''),
         },
         {
@@ -53,7 +53,7 @@ export function buildColumns(editingRowId, _setEditingRowId, options = {}) {
             getIsEditable: (row) => { var _a, _b; return row.type !== 'folder' && ((_b = (_a = row.propertyPermissions) === null || _a === void 0 ? void 0 : _a.unitPrice) !== null && _b !== void 0 ? _b : true); },
             getIsVisible: (vm) => vm !== 'customer',
             editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
-            editor: ({ value, onChange, commit, cancel, autoFocus }) => (_jsx(CurrencyEditor, { value: value, onChange: onChange, onCommit: commit, onCancel: cancel, autoFocus: autoFocus, locale: language, currency: currency })),
+            editor: ({ value, onChange, commit, cancel, autoFocus, size }) => (_jsx(CurrencyEditor, { value: value, onChange: onChange, onCommit: commit, onCancel: cancel, autoFocus: autoFocus, size: size, locale: language, currency: currency })),
             valueParser: (input) => parseCurrency(input, currencyOptions),
             valueFormatter: (v) => formatCurrency(typeof v === 'number' ? v : undefined, currencyOptions),
         },
@@ -65,7 +65,7 @@ export function buildColumns(editingRowId, _setEditingRowId, options = {}) {
             getIsEditable: (row) => row.type !== 'folder',
             getIsVisible: (vm) => vm !== 'customer',
             editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
-            editor: ({ value, onChange, commit, cancel, autoFocus }) => (_jsx(PercentageEditor, { value: typeof value === 'number' ? value : undefined, onChange: onChange, onCommit: commit, onCancel: cancel, autoFocus: autoFocus, locale: options.language, min: 0, max: 100, step: 0.1 })),
+            editor: ({ value, onChange, commit, cancel, autoFocus, size }) => (_jsx(PercentageEditor, { value: typeof value === 'number' ? value : undefined, onChange: onChange, onCommit: commit, onCancel: cancel, autoFocus: autoFocus, size: size, locale: options.language, min: 0, max: 100, step: 0.1 })),
             valueFormatter: (v) => {
                 if (typeof v !== 'number')
                     return '';

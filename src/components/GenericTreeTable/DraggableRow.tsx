@@ -273,6 +273,7 @@ function DraggableRowInner<T extends object>(
                         setEditingKey={setEditingKey}
                         setEditingValue={setEditingValue}
                         markAutoClosed={markAutoClosed}
+                        size={size}
                         onEditCommit={onEditCommit}
                     />
                 ) : (
@@ -283,7 +284,13 @@ function DraggableRowInner<T extends object>(
                                 startEdit(row, col)
                             }
                         }}
-                        sx={!!col.editor && editable && !always ? { '&:hover': { cursor: 'pointer' } } : undefined}
+                        sx={
+                            !!col.editor && editable
+                                ? {
+                                      ...( !always ? { '&:hover': { cursor: 'pointer' } } : undefined)
+                                  }
+                                : {padding: "7px"}
+                        }
                     >
                         <ViewCell row={row} col={col} level={level} />
                     </Box>

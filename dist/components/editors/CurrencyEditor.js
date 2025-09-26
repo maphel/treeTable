@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import { formatCurrencyLive, formatCurrencyValue, getLocaleSeparators, } from '../formatters/currency.js';
 import { useCommitCancelHandlers, useSelectOnAutoFocus, countUnitsBeforeCaret, restoreCaretByUnits, getOtherDecimal, compactTextFieldSx } from './shared.js';
-export default function CurrencyEditor({ value, onChange, onCommit, onCancel, autoFocus, locale = 'de-DE', currency = 'EUR', }) {
+export default function CurrencyEditor({ value, onChange, onCommit, onCancel, autoFocus, locale = 'de-DE', currency = 'EUR', size = 'medium', }) {
     const inputRef = useSelectOnAutoFocus(autoFocus);
     const separators = React.useMemo(() => getLocaleSeparators(locale, currency), [locale, currency]);
     const dec = separators.decimal;
@@ -40,7 +40,7 @@ export default function CurrencyEditor({ value, onChange, onCommit, onCancel, au
         });
     };
     const { onKeyDown, onBlur } = useCommitCancelHandlers(onCommit, onCancel);
-    return (_jsx(TextField, { variant: "standard", size: "small", margin: "dense", value: displayValue, onChange: handleChange, onKeyDown: onKeyDown, onBlur: onBlur, autoFocus: autoFocus, inputRef: inputRef, fullWidth: true, InputProps: {
+    return (_jsx(TextField, { variant: "standard", size: size, margin: "dense", value: displayValue, onChange: handleChange, onKeyDown: onKeyDown, onBlur: onBlur, autoFocus: autoFocus, inputRef: inputRef, fullWidth: true, InputProps: {
             ...(currencyPlacement === 'start'
                 ? { startAdornment: (_jsx(InputAdornment, { position: "start", sx: { m: 0 }, children: separators.currencySym })) }
                 : { endAdornment: (_jsx(InputAdornment, { position: "end", sx: { m: 0 }, children: separators.currencySym })) }),

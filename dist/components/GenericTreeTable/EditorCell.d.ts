@@ -10,6 +10,7 @@ export type EditorCellProps<T extends object> = {
     setEditingKey: Dispatch<SetStateAction<string | null>>;
     setEditingValue: Dispatch<SetStateAction<any>>;
     markAutoClosed: (key: string) => void;
+    size?: "small" | "medium";
     onEditCommit?: (row: RowModel<T>, column: ColumnDef<T>, next: unknown) => Promise<void> | void;
 };
-export default function EditorCell<T extends object>({ row, col, mode, cellKey, editingKey, editingValue, setEditingKey, setEditingValue, markAutoClosed, onEditCommit }: EditorCellProps<T>): import("react/jsx-runtime").JSX.Element | null;
+export default function EditorCell<T extends object>({ row, col, mode, cellKey, editingKey, editingValue, setEditingKey, setEditingValue, markAutoClosed, onEditCommit, size }: EditorCellProps<T>): import("react/jsx-runtime").JSX.Element | null;

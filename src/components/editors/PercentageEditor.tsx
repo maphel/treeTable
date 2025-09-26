@@ -14,6 +14,7 @@ export type PercentageEditorProps = {
     max?: number
     step?: number
     locale?: string
+    size?: "small" | "medium"
 }
 
 function formatValue(value: number | undefined, locale: string) {
@@ -30,7 +31,8 @@ export default function PercentageEditor({
     min,
     max,
     step,
-    locale = "de-DE"
+    locale = "de-DE",
+    size = "medium"
 }: PercentageEditorProps) {
     const inputRef = useSelectOnAutoFocus<HTMLInputElement>(autoFocus)
     const [text, setText] = useState(formatValue(value, locale))
@@ -68,7 +70,7 @@ export default function PercentageEditor({
     return (
         <TextField
             variant="standard"
-            size="small"
+            size={size}
             margin="dense"
             value={text}
             onChange={handleChange}

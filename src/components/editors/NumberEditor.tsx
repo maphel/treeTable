@@ -12,6 +12,7 @@ export type NumberEditorProps = {
     step?: number
     min?: number
     max?: number
+    size?: "small" | "medium"
 }
 
 export default function NumberEditor({
@@ -22,7 +23,8 @@ export default function NumberEditor({
     autoFocus,
     step,
     min,
-    max
+    max,
+    size = "medium"
 }: NumberEditorProps) {
     const [text, setText] = useState(value == null ? "" : String(value))
     useEffect(() => {
@@ -37,7 +39,7 @@ export default function NumberEditor({
     return (
         <TextField
             variant="standard"
-            size="small"
+            size={size}
             margin="dense"
             value={text}
             inputRef={ref}
