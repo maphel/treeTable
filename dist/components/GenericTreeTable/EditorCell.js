@@ -32,8 +32,6 @@ export default function EditorCell({ row, col, mode, cellKey, editingKey, editin
             }
         }
         catch (e) {
-            // keep editor open on error
-            // eslint-disable-next-line no-console
             console.warn("Commit failed", e);
         }
     }, [
@@ -91,7 +89,6 @@ export default function EditorCell({ row, col, mode, cellKey, editingKey, editin
             row,
             value: val,
             onChange: handleChange,
-            // eslint-disable-next-line no-void
             commit: () => void commit(),
             cancel,
             autoFocus: !always && editingKey === key

@@ -7,10 +7,4 @@ export type CurrencyInputProps = {
     locale?: string;
     currency?: string;
 };
-/**
- * Lightweight currency input with de-DE style live formatting
- * - Thousands separator while typing
- * - Decimal comma (",")
- * - Preserves caret around reformatting
- */
 export default function CurrencyInput({ value, onChange, onCommit, onCancel, autoFocus, locale, currency, }: CurrencyInputProps): import("react/jsx-runtime").JSX.Element;

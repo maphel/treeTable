@@ -35,7 +35,6 @@ export function buildColumns(
   _setEditingRowId: React.Dispatch<React.SetStateAction<string | null>>,
   options: { includeTotals?: boolean; language?: string; currency?: string } = {}
 ): ColumnDef<RowData>[] {
-  // Ensure sane defaults even when a partial options object is supplied
   const language = options.language ?? "de-DE";
   const currency = options.currency ?? "EUR";
   const includeTotals = options.includeTotals ?? false;
@@ -47,9 +46,7 @@ export function buildColumns(
       header: 'Name',
       width: '40%',
       getIsEditable: (row) => row.type === 'custom' && (row.propertyPermissions?.name ?? true),
-      // Row-level edit unlocks this cell when the row is active
       editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
-      // Keep name auto-commit while in row edit mode
       autoCommitOnChange: (row) => row.id === editingRowId,
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
         <TextEditor
@@ -73,7 +70,6 @@ export function buildColumns(
       align: 'right',
       width: 120,
       getIsEditable: (row) => row.type !== 'folder' && (row.propertyPermissions?.quantity ?? true),
-      // Row-level edit unlocks this cell when the row is active
       editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
         <NumberEditor
@@ -95,7 +91,6 @@ export function buildColumns(
       width: 140,
       getIsEditable: (row) => row.type !== 'folder' && (row.propertyPermissions?.unitPrice ?? true),
       getIsVisible: (vm) => vm !== 'customer',
-      // Row-level edit unlocks this cell when the row is active
       editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
         <CurrencyEditor 
@@ -108,7 +103,6 @@ export function buildColumns(
           currency={currency}
            />
       ),
-      // Ensure live currency string is parsed back to a number
       valueParser: (input) => parseCurrency(input, currencyOptions),
       valueFormatter: (v) => formatCurrency(typeof v === 'number' ? v : undefined, currencyOptions),
     },
@@ -119,9 +113,7 @@ export function buildColumns(
       width: 120,
       getIsEditable: (row) => row.type !== 'folder',
       getIsVisible: (vm) => vm !== 'customer',
-      // Row-level edit unlocks this cell when the row is active
       editMode: (row) => (row.id === editingRowId ? 'unlocked' : undefined),
-      // Use the PercentageEditor; it emits fractions (0.15 for 15%)
       editor: ({ value, onChange, commit, cancel, autoFocus }) => (
         <PercentageEditor
           value={typeof value === 'number' ? (value as number) : undefined}
@@ -144,7 +136,6 @@ export function buildColumns(
 
   if (includeTotals) {
     const calcLineTotal = (r: RowModel<RowData>): number => {
-      // base line total for non-folders
       if (r.type !== 'folder') {
         const q = (r as any).qty as number | undefined;
         const p = (r as any).unitPrice as number | undefined;
@@ -170,9 +161,7 @@ export function buildColumns(
       header: 'Summe',
       align: 'right',
       width: 160,
-      // Show totals to both pro and customer views
       cell: ({ row }) => {
-        // For folders, show aggregated sum of descendants.
         const total = row.type === 'folder' ? sumRecursive(row) : calcLineTotal(row);
         if (!total) return '';
         return formatCurrency(total, currencyOptions);

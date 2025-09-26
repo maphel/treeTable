@@ -25,17 +25,11 @@ export function DragOverlayContent({ activeId, byKey, visible, columns, size }) 
             maxWidth: "70vw",
             overflow: "hidden",
         }, children: _jsx(TableContainer, { children: _jsx(Table, { children: _jsx(TableBody, { children: _jsx(TableRow, { children: columns.map((col, idx) => {
-                            const content = (_jsx(TableCell, { children: _jsx(ViewCell, { row: activeRow, col: col, level: level }) }));
-                            return IndentedCell(activeRow, col, level, idx === 0, hasChildren, isExpanded, undefined, _jsx(IconButton, { size: size === "small"
-                                    ? "small"
-                                    : "medium", disableRipple: true, disableFocusRipple: true, sx: {
+                            const cellContent = IndentedCell(activeRow, col, level, idx === 0, hasChildren, isExpanded, undefined, _jsx(IconButton, { size: size === "small" ? "small" : "medium", disableRipple: true, disableFocusRipple: true, sx: {
                                     mr: 1,
                                     cursor: "grabbing",
-                                    "&:focus,&:focus-visible": {
-                                        outline: "none"
-                                    }
-                                }, children: _jsx(DragIndicatorIcon, { fontSize: size === "small"
-                                        ? "small"
-                                        : "medium" }) }), size, content);
+                                    "&:focus,&:focus-visible": { outline: "none" }
+                                }, children: _jsx(DragIndicatorIcon, { fontSize: size === "small" ? "small" : "medium" }) }), size, _jsx(ViewCell, { row: activeRow, col: col, level: level }));
+                            return (_jsx(TableCell, { align: col.align, style: { width: col.width }, children: cellContent }, col.id));
                         }) }) }) }) }) }));
 }

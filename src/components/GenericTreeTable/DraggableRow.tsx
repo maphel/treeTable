@@ -43,7 +43,6 @@ export type DraggableRowProps<T extends object> = {
     toggle: (id: string) => void
     viewMode: string | undefined
     getRowActions?: (row: RowModel<T>) => ReactNode
-    // inline edit state
     editingKey: string | null
     editingValue: any
     setEditingKey: Dispatch<SetStateAction<string | null>>
@@ -94,7 +93,6 @@ function DraggableRowInner<T extends object>(
         useDraggable({ id: draggableId })
     const canDrag = readOnly ? false : getRowCanDrag ? getRowCanDrag(row) : true
 
-    // inside droppable (for moving into a folder)
     const insideId = useMemo(
         () => `inside:${draggableId}` as const,
         [draggableId]
@@ -183,8 +181,6 @@ function DraggableRowInner<T extends object>(
         [row, viewMode, isEditable]
     )
 
-    // When row transitions from no-unlocked-cells to unlocked-cells, we reset the
-    // autoClosed flags for this row so all cells re-open on next render.
     const anyUnlocked = useMemo(
         () => visibleColumns.some((c) => isEditable(c) && resolveEditMode(c) === "unlocked"),
         [visibleColumns, isEditable, resolveEditMode]
@@ -197,8 +193,6 @@ function DraggableRowInner<T extends object>(
         prevUnlockedRef.current = anyUnlocked
     }, [anyUnlocked, clearAutoClosedForRow, row.id])
 
-    // When all unlocked cells have been auto-closed, notify parent so it can
-    // clear external row-level edit state if desired.
     const allClosedNotifiedRef = React.useRef(false)
     useEffect(() => {
         if (!anyUnlocked) {
@@ -224,7 +218,7 @@ function DraggableRowInner<T extends object>(
     } as typeof attributes & { tabIndex: number }
 
     const handleRowKeyDown = (e: React.KeyboardEvent) => {
-        if (e.target !== e.currentTarget) return // ignore when inside inputs
+        if (e.target !== e.currentTarget) return
         if (e.key === "ArrowLeft") {
             if (hasChildren && isExpanded) {
                 e.preventDefault()
@@ -332,11 +326,7 @@ function DraggableRowInner<T extends object>(
                             size,
                             content
                         )}
-                        {/**
-                         * Place draggable drop zones and overlays inside the first cell
-                         * so that no divs appear directly under <tr> (invalid HTML).
-                         * These elements are absolutely positioned relative to the row.
-                         */}
+                        
                         {idx === 0 && !readOnly && (
                             <>
                                 <Box

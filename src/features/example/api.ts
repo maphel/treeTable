@@ -8,7 +8,7 @@ export type LineItem = {
   name: string;
   quantity?: number;
   unitPrice?: number;
-  discount?: number; // percentage value 0..100
+  discount?: number;
   children?: LineItem[];
   draggable?: boolean;
 };
@@ -183,13 +183,11 @@ const sampleData: LineItem[] = [
   },
 ];
 
-// very small store to enable "invalidation"
 let version = 0;
 const subscribers = new Set<() => void>();
 function notify() { version++; subscribers.forEach((l) => l()); }
 
 export function useGetLineItemsQuery(_: undefined) {
-  // rerender on store changes
   React.useSyncExternalStore(
     (listener) => { subscribers.add(listener); return () => { subscribers.delete(listener); }; },
     () => version,
@@ -215,10 +213,7 @@ export function useMoveLineItemsMutation(): [
     setLoading(true);
     setError(undefined);
     try {
-      // Simuliere Backend-Call + Invalidation
-      // In echter App: API aufrufen und Query invalidieren/refetchen
       await new Promise((res) => setTimeout(res, 200));
-      // eslint-disable-next-line no-console
       console.log('moveLineItems', input);
       notify();
     } catch (e) {
@@ -249,7 +244,6 @@ export function useUpdateLineItemMutation(): [
     setError(undefined);
     try {
       await new Promise((res) => setTimeout(res, 120));
-      // apply to sample data
       const apply = (list: LineItem[] | undefined): boolean => {
         if (!list) return false;
         for (const item of list) {
@@ -262,7 +256,6 @@ export function useUpdateLineItemMutation(): [
         return false;
       };
       apply(sampleData);
-      // eslint-disable-next-line no-console
       console.log('updateLineItem', input);
       notify();
     } catch (e) {
@@ -299,7 +292,6 @@ export function useDeleteLineItemsMutation(): [
         const next: LineItem[] = [];
         for (const item of list) {
           if (ids.has(String(item.lineItemId))) {
-            // skip -> deleted
             continue;
           }
           const children = removeFrom(item.children);
@@ -308,10 +300,8 @@ export function useDeleteLineItemsMutation(): [
         return next;
       };
 
-      // mutate sampleData in place to keep references
       const next = removeFrom(sampleData) || [];
       sampleData.splice(0, sampleData.length, ...next);
-      // eslint-disable-next-line no-console
       console.log('deleteLineItems', input);
       notify();
     } catch (e) {
@@ -360,14 +350,13 @@ export function useDuplicateLineItemsMutation(): [
           if (byId.has(String(item.lineItemId))) {
             const copy = cloneWithNewIds(item);
             list.splice(i + 1, 0, copy);
-            i++; // skip over the inserted copy
+            i++;
           }
           duplicateIn(item.children);
         }
       };
 
       duplicateIn(sampleData);
-      // eslint-disable-next-line no-console
       console.log('duplicateLineItems', input);
       notify();
     } catch (e) {

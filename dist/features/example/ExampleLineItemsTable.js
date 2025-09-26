@@ -69,7 +69,6 @@ export function ExampleLineItemsTable() {
     const [duplicateLineItems, { isLoading: isDuplicating }] = useDuplicateLineItemsMutation();
     const [view, setView] = useViewMode();
     const isCustomer = view === 'customer';
-    // Row-level edit toggle: when set to a row id, all editable cells in that row are unlocked
     const [editingRowId, setEditingRowId] = React.useState(null);
     const columns = React.useMemo(() => buildColumns(editingRowId, setEditingRowId, { includeTotals: true, language: 'de-DE', currency: 'EUR' }), [editingRowId]);
     const getRowCanDrag = React.useCallback((row) => {

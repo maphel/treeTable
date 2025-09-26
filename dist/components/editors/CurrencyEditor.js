@@ -3,32 +3,22 @@ import * as React from 'react';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import { formatCurrencyLive, formatCurrencyValue, getLocaleSeparators, } from '../formatters/currency.js';
-/**
- * Lightweight currency input with de-DE style live formatting
- * - Thousands separator while typing
- * - Decimal comma (",")
- * - Preserves caret around reformatting
- */
 export default function CurrencyInput({ value, onChange, onCommit, onCancel, autoFocus, locale = 'de-DE', currency = 'EUR', }) {
     const inputRef = React.useRef(null);
     const separators = React.useMemo(() => getLocaleSeparators(locale, currency), [locale, currency]);
     const dec = separators.decimal;
     const otherDec = dec === '.' ? ',' : '.';
-    // Determine if currency symbol is prefixed or suffixed in this locale
     const currencyPlacement = React.useMemo(() => {
         const parts = new Intl.NumberFormat(locale, { style: 'currency', currency, currencyDisplay: 'narrowSymbol' }).formatToParts(1234.56);
         const ci = parts.findIndex(p => p.type === 'currency');
         const ii = parts.findIndex(p => p.type === 'integer');
         return ci >= 0 && ii >= 0 && ci < ii ? 'start' : 'end';
     }, [locale, currency]);
-    // Convert number input to formatted string for display
     const displayValue = React.useMemo(() => {
         if (typeof value === 'number') {
             return formatCurrencyValue(value, locale, currency);
         }
         if (typeof value === 'string') {
-            // Use the live string as-is to avoid double-normalizing
-            // group separators into decimals for locales like de-DE.
             return value;
         }
         return '';
@@ -38,7 +28,6 @@ export default function CurrencyInput({ value, onChange, onCommit, onCancel, aut
         const input = e.target;
         const prev = input.value;
         const sel = (_a = input.selectionStart) !== null && _a !== void 0 ? _a : prev.length;
-        // Count digits and first decimal as units to preserve caret after decimal
         const leftStr = prev.slice(0, sel);
         const countUnits = (s) => {
             let units = 0;
@@ -57,7 +46,6 @@ export default function CurrencyInput({ value, onChange, onCommit, onCancel, aut
         const unitsLeft = countUnits(leftStr);
         const nextStr = formatCurrencyLive(prev, separators);
         onChange(nextStr);
-        // Restore caret position based on unit count
         requestAnimationFrame(() => {
             const el = inputRef.current;
             if (!el)

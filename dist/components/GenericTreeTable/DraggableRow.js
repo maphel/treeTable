@@ -14,7 +14,6 @@ function DraggableRowInner(props) {
     const draggableId = String(row.id);
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: draggableId });
     const canDrag = readOnly ? false : getRowCanDrag ? getRowCanDrag(row) : true;
-    // inside droppable (for moving into a folder)
     const insideId = useMemo(() => `inside:${draggableId}`, [draggableId]);
     const { isOver: isInsideOver, setNodeRef: setInsideRef } = useDroppable({
         id: insideId
@@ -96,8 +95,6 @@ function DraggableRowInner(props) {
             return "locked";
         return "off";
     }, [row, viewMode, isEditable]);
-    // When row transitions from no-unlocked-cells to unlocked-cells, we reset the
-    // autoClosed flags for this row so all cells re-open on next render.
     const anyUnlocked = useMemo(() => visibleColumns.some((c) => isEditable(c) && resolveEditMode(c) === "unlocked"), [visibleColumns, isEditable, resolveEditMode]);
     const prevUnlockedRef = React.useRef(false);
     useEffect(() => {
@@ -106,8 +103,6 @@ function DraggableRowInner(props) {
         }
         prevUnlockedRef.current = anyUnlocked;
     }, [anyUnlocked, clearAutoClosedForRow, row.id]);
-    // When all unlocked cells have been auto-closed, notify parent so it can
-    // clear external row-level edit state if desired.
     const allClosedNotifiedRef = React.useRef(false);
     useEffect(() => {
         if (!anyUnlocked) {
@@ -134,7 +129,7 @@ function DraggableRowInner(props) {
     };
     const handleRowKeyDown = (e) => {
         if (e.target !== e.currentTarget)
-            return; // ignore when inside inputs
+            return;
         if (e.key === "ArrowLeft") {
             if (hasChildren && isExpanded) {
                 e.preventDefault();

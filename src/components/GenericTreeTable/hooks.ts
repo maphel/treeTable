@@ -29,11 +29,7 @@ export function useExpandedRows(
 
     const toggle = useCallback(
         (id: string) => {
-            // Determine current expansion state as rendered, accounting for the
-            // initial "expand all when empty" behavior.
             const currentlyExpanded = (() => {
-                // When no interactions yet and the set is empty, the table renders
-                // as "expanded" for all expandable ids.
                 if (!hasInteracted && (!expanded || expanded.size === 0)) {
                     return allExpandableIds ? allExpandableIds.has(id) : false
                 }
@@ -61,7 +57,6 @@ export function useExpandedRows(
                     return next
                 })
             }
-            // Reflect the actual next state in the callback
             onRowToggle?.(id, !currentlyExpanded)
         },
         [expanded, controlled, onRowToggle, allExpandableIds, hasInteracted]
@@ -96,7 +91,6 @@ export function useValidTargets<T extends object>(
             setValidTargets(setVal)
         }
 
-        // eslint-disable-next-line no-void
         void load()
         return () => {
             cancelled = true

@@ -55,7 +55,6 @@ export function sanitizeCurrencyInput(
         .replace(/\p{Sc}+/gu, "")
         .replace(/[A-Za-z]/g, "")
 
-    // Handle decimal separator normalization
     if (!s.includes(dec) && s.includes(otherDec)) {
         const countOther = (s.match(new RegExp(`\\${otherDec}`, "g")) || [])
             .length
@@ -64,16 +63,13 @@ export function sanitizeCurrencyInput(
         }
     }
 
-    // Remove unwanted characters
     const allowed = new RegExp(`[^0-9\\${grp}\\${dec}-]`, "g")
     s = s.replace(allowed, "")
 
-    // Handle negative sign
     const negative = s.includes("-")
     s = s.replace(/-/g, "")
     if (negative) s = "-" + s
 
-    // Keep only first decimal separator
     const firstDec = s.indexOf(dec)
     if (firstDec !== -1) {
         const before = s.slice(0, firstDec + 1)
@@ -112,13 +108,11 @@ export function formatCurrencyLive(
     let intPart = decIdx >= 0 ? s.slice(0, decIdx) : s
     let fracPart = decIdx >= 0 ? s.slice(decIdx + 1) : ""
 
-    // Clean and limit parts
     const rgGroup = new RegExp(`\\${grp}`, "g")
     intPart = intPart.replace(rgGroup, "").replace(/[^0-9]/g, "")
     fracPart = fracPart.replace(/[^0-9]/g, "")
     if (fracPart.length > 2) fracPart = fracPart.slice(0, 2)
 
-    // Add thousands separators
     const rev = [...intPart].reverse().join("")
     const groupedRev = rev.replace(/(\d{3})(?=\d)/g, `$1${grp}`)
     const grouped = [...groupedRev].reverse().join("")
@@ -173,13 +167,25 @@ export function formatCurrency(
     return formatter.format(v)
 }
 
+export function parseCurrency(input: unknown, locale?: string, currency?: string): number | undefined
 export function parseCurrency(
     input: unknown,
-    {
-        locale = "en-GB",
-        currency = "GBP",
-    }: CurrencyFormatOptions = {}
+    options?: CurrencyFormatOptions
+): number | undefined
+export function parseCurrency(
+    input: unknown,
+    localeOrOptions?: string | CurrencyFormatOptions,
+    currencyMaybe?: string
 ): number | undefined {
+    let locale = "en-GB"
+    let currency = "GBP"
+    if (typeof localeOrOptions === "string") {
+        if (localeOrOptions) locale = localeOrOptions
+        if (currencyMaybe) currency = currencyMaybe
+    } else if (localeOrOptions && typeof localeOrOptions === "object") {
+        if (localeOrOptions.locale) locale = localeOrOptions.locale
+        if (localeOrOptions.currency) currency = localeOrOptions.currency
+    }
     if (typeof input === "number")
         return Number.isFinite(input) ? input : undefined
     if (typeof input !== "string") return undefined

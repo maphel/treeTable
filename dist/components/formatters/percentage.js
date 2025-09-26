@@ -15,10 +15,9 @@ export function sanitizePercentInput(raw, separators) {
     const { decimal: dec } = separators;
     const otherDec = dec === "." ? "," : ".";
     let s = raw
-        .replace(/[\u00A0\u202F\s]/g, "") // whitespace
-        .replace(/%/g, "") // percent sign
-        .replace(/[A-Za-z]/g, ""); // letters
-    // Handle decimal separator normalization
+        .replace(/[\u00A0\u202F\s]/g, "")
+        .replace(/%/g, "")
+        .replace(/[A-Za-z]/g, "");
     if (!s.includes(dec) && s.includes(otherDec)) {
         const countOther = (s.match(new RegExp(`\\${otherDec}`, "g")) || [])
             .length;
@@ -26,15 +25,12 @@ export function sanitizePercentInput(raw, separators) {
             s = s.replace(otherDec, dec);
         }
     }
-    // Remove unwanted characters
     const allowed = new RegExp(`[^0-9\\${dec}-]`, "g");
     s = s.replace(allowed, "");
-    // Handle negative sign
     const negative = s.includes("-");
     s = s.replace(/-/g, "");
     if (negative)
         s = "-" + s;
-    // Keep only first decimal separator
     const firstDec = s.indexOf(dec);
     if (firstDec !== -1) {
         const before = s.slice(0, firstDec + 1);
@@ -63,7 +59,6 @@ export function formatPercentLive(raw, separators) {
     const decIdx = s.indexOf(dec);
     let intPart = decIdx >= 0 ? s.slice(0, decIdx) : s;
     let fracPart = decIdx >= 0 ? s.slice(decIdx + 1) : "";
-    // Clean and limit parts
     intPart = intPart.replace(/[^0-9]/g, "");
     fracPart = fracPart.replace(/[^0-9]/g, "");
     let out;

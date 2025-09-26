@@ -12,11 +12,7 @@ export function useExpandedRows(controlledExpanded, onRowToggle, allExpandableId
     }, [controlled, controlledExpanded]);
     const expanded = controlled ? toIdSet(controlledExpanded) : internalExpanded;
     const toggle = useCallback((id) => {
-        // Determine current expansion state as rendered, accounting for the
-        // initial "expand all when empty" behavior.
         const currentlyExpanded = (() => {
-            // When no interactions yet and the set is empty, the table renders
-            // as "expanded" for all expandable ids.
             if (!hasInteracted && (!expanded || expanded.size === 0)) {
                 return allExpandableIds ? allExpandableIds.has(id) : false;
             }
@@ -46,7 +42,6 @@ export function useExpandedRows(controlledExpanded, onRowToggle, allExpandableId
                 return next;
             });
         }
-        // Reflect the actual next state in the callback
         onRowToggle === null || onRowToggle === void 0 ? void 0 : onRowToggle(id, !currentlyExpanded);
     }, [expanded, controlled, onRowToggle, allExpandableIds, hasInteracted]);
     return { expanded, toggle };
@@ -69,7 +64,6 @@ export function useValidTargets(activeId, byKey, getValidDropTargets) {
             const setVal = res instanceof Set ? res : new Set(res);
             setValidTargets(setVal);
         }
-        // eslint-disable-next-line no-void
         void load();
         return () => {
             cancelled = true;

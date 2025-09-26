@@ -80,9 +80,7 @@ export default function PercentageEditor({ value, onChange, onCommit, onCancel, 
         }
     };
     const handleBlur = () => onCommit === null || onCommit === void 0 ? void 0 : onCommit();
-    return (_jsx(TextField, { variant: "standard", size: "small", value: text, onChange: handleChange, onKeyDown: handleKeyDown, onBlur: handleBlur, 
-        // No need to mutate text on focus; we render the % symbol in value
-        autoFocus: autoFocus, inputRef: inputRef, fullWidth: true, InputProps: {
+    return (_jsx(TextField, { variant: "standard", size: "small", value: text, onChange: handleChange, onKeyDown: handleKeyDown, onBlur: handleBlur, autoFocus: autoFocus, inputRef: inputRef, fullWidth: true, InputProps: {
             endAdornment: (_jsx(InputAdornment, { position: "end", children: "%" }))
         }, inputProps: {
             inputMode: "decimal",

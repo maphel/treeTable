@@ -1,8 +1,4 @@
 import { pointerWithin } from "@dnd-kit/core";
-/**
- * Build a collision detection function that prefers edge (before/after) zones
- * and filters out disallowed targets using getRowCanDrop and a precomputed valid target set.
- */
 export function createCollisionDetector(params) {
     const { activeId, byKey, getRowCanDrop, validTargets } = params;
     return (args) => {
@@ -10,10 +6,10 @@ export function createCollisionDetector(params) {
         const score = (id) => {
             const s = String(id);
             if (s.startsWith("before:") || s.startsWith("after:"))
-                return 0; // highest priority
+                return 0;
             if (s.startsWith("inside:"))
-                return 1; // fallback if not over edge zones
-            return 2; // anything else
+                return 1;
+            return 2;
         };
         const isAllowed = (id) => {
             if (!activeId)
