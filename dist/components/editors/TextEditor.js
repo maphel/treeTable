@@ -1,9 +1,9 @@
 import { jsx as _jsx } from "react/jsx-runtime";
-import * as React from 'react';
-import TextField from '@mui/material/TextField';
+import { TextField } from "@mui/material";
+import { useEffect, useRef } from "react";
 export default function TextEditor({ value, onChange, onCommit, onCancel, autoFocus }) {
-    const ref = React.useRef(null);
-    React.useEffect(() => {
+    const ref = useRef(null);
+    useEffect(() => {
         if (autoFocus && ref.current) {
             try {
                 ref.current.select();
@@ -11,12 +11,12 @@ export default function TextEditor({ value, onChange, onCommit, onCancel, autoFo
             catch { }
         }
     }, [autoFocus]);
-    return (_jsx(TextField, { variant: "standard", size: "small", value: typeof value === 'string' ? value : (value !== null && value !== void 0 ? value : ''), inputRef: ref, onChange: (e) => onChange(e.target.value), onKeyDown: (e) => {
-            if (e.key === 'Enter') {
+    return (_jsx(TextField, { variant: "standard", size: "small", value: typeof value === "string" ? value : value !== null && value !== void 0 ? value : "", inputRef: ref, onChange: (e) => onChange(e.target.value), onKeyDown: (e) => {
+            if (e.key === "Enter") {
                 e.preventDefault();
                 onCommit === null || onCommit === void 0 ? void 0 : onCommit();
             }
-            if (e.key === 'Escape') {
+            if (e.key === "Escape") {
                 e.preventDefault();
                 onCancel === null || onCancel === void 0 ? void 0 : onCancel();
             }

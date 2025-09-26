@@ -19,6 +19,7 @@
   "scripts": {
     "prebuild": "rm -rf dist",
     "build": "tsc -p tsconfig.json",
+    "test:formatters": "npm run -s build && node dist/components/formatters/percentage.test.js && node dist/components/formatters/currency.test.js",
     "dev": "vite",
     "preview": "vite preview"
   },

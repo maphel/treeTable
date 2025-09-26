@@ -1,10 +1,11 @@
 export type LineItemType = 'folder' | 'product' | 'custom' | 'subproduct';
 export type LineItem = {
-    lineItemId: string | number;
+    lineItemId: string;
     type: LineItemType;
     name: string;
     quantity?: number;
     unitPrice?: number;
+    discount?: number;
     children?: LineItem[];
     draggable?: boolean;
 };

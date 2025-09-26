@@ -1,4 +1,4 @@
-import type { RowModel } from '../../../components/TreeTable/types';
+import type { RowModel } from '../../../components/GenericTreeTable/genericTreeTable.types';
 export type RowActionsProps<T extends object = {}> = {
     row: RowModel<T> & {
         permission?: boolean;

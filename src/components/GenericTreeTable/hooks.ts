@@ -29,13 +29,22 @@ export function useExpandedRows(
 
     const toggle = useCallback(
         (id: string) => {
-            const isExpanded = expanded.has(id)
+            // Determine current expansion state as rendered, accounting for the
+            // initial "expand all when empty" behavior.
+            const currentlyExpanded = (() => {
+                // When no interactions yet and the set is empty, the table renders
+                // as "expanded" for all expandable ids.
+                if (!hasInteracted && (!expanded || expanded.size === 0)) {
+                    return allExpandableIds ? allExpandableIds.has(id) : false
+                }
+                return expanded.has(id)
+            })()
             if (!controlled) {
                 setInternalExpanded((prev) => {
                     if (!hasInteracted && prev.size === 0 && allExpandableIds) {
                         setHasInteracted(true)
                         const next = new Set(allExpandableIds)
-                        if (isExpanded || allExpandableIds.has(id)) {
+                        if (currentlyExpanded || allExpandableIds.has(id)) {
                             next.delete(id)
                         } else {
                             next.add(id)
@@ -44,7 +53,7 @@ export function useExpandedRows(
                     }
                     setHasInteracted(true)
                     const next = new Set(prev)
-                    if (isExpanded) {
+                    if (currentlyExpanded) {
                         next.delete(id)
                     } else {
                         next.add(id)
@@ -52,7 +61,8 @@ export function useExpandedRows(
                     return next
                 })
             }
-            onRowToggle?.(id, !isExpanded)
+            // Reflect the actual next state in the callback
+            onRowToggle?.(id, !currentlyExpanded)
         },
         [expanded, controlled, onRowToggle, allExpandableIds, hasInteracted]
     )

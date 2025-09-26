@@ -1,0 +1,121 @@
+export function getLocaleSeparators(locale = "en-GB") {
+    var _a, _b;
+    const formatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    const parts = formatter.formatToParts(1234.56);
+    const group = ((_a = parts.find((p) => p.type === "group")) === null || _a === void 0 ? void 0 : _a.value) || ".";
+    const decimal = ((_b = parts.find((p) => p.type === "decimal")) === null || _b === void 0 ? void 0 : _b.value) || ",";
+    return { group, decimal };
+}
+export function sanitizePercentInput(raw, separators) {
+    if (!raw)
+        return "";
+    const { decimal: dec } = separators;
+    const otherDec = dec === "." ? "," : ".";
+    let s = raw
+        .replace(/[\u00A0\u202F\s]/g, "") // whitespace
+        .replace(/%/g, "") // percent sign
+        .replace(/[A-Za-z]/g, ""); // letters
+    // Handle decimal separator normalization
+    if (!s.includes(dec) && s.includes(otherDec)) {
+        const countOther = (s.match(new RegExp(`\\${otherDec}`, "g")) || [])
+            .length;
+        if (countOther === 1) {
+            s = s.replace(otherDec, dec);
+        }
+    }
+    // Remove unwanted characters
+    const allowed = new RegExp(`[^0-9\\${dec}-]`, "g");
+    s = s.replace(allowed, "");
+    // Handle negative sign
+    const negative = s.includes("-");
+    s = s.replace(/-/g, "");
+    if (negative)
+        s = "-" + s;
+    // Keep only first decimal separator
+    const firstDec = s.indexOf(dec);
+    if (firstDec !== -1) {
+        const before = s.slice(0, firstDec + 1);
+        const after = s
+            .slice(firstDec + 1)
+            .replace(new RegExp(`\\${dec}`, "g"), "");
+        s = before + after;
+    }
+    return s;
+}
+export function formatPercentLive(raw, separators) {
+    if (!raw)
+        return "";
+    const { decimal: dec } = separators;
+    const otherDec = dec === "." ? "," : ".";
+    const trimmed = raw.trim();
+    const typedDecimalAtEnd = trimmed.endsWith(dec) || trimmed.endsWith(otherDec);
+    let s = sanitizePercentInput(raw, separators);
+    if (s === "-")
+        return s;
+    const negative = s.startsWith("-");
+    if (negative)
+        s = s.slice(1);
+    if (s.startsWith(dec))
+        s = "0" + s;
+    const decIdx = s.indexOf(dec);
+    let intPart = decIdx >= 0 ? s.slice(0, decIdx) : s;
+    let fracPart = decIdx >= 0 ? s.slice(decIdx + 1) : "";
+    // Clean and limit parts
+    intPart = intPart.replace(/[^0-9]/g, "");
+    fracPart = fracPart.replace(/[^0-9]/g, "");
+    let out;
+    if (decIdx >= 0) {
+        out =
+            fracPart.length > 0
+                ? `${intPart}${dec}${fracPart}`
+                : typedDecimalAtEnd
+                    ? `${intPart}${dec}`
+                    : intPart;
+    }
+    else {
+        out = intPart;
+        if (/^[.,]$/.test(trimmed))
+            out = `0${dec}`;
+    }
+    return negative ? `-${out}` : out;
+}
+export function formatPercentValue(value, locale = "en-GB") {
+    const formatter = new Intl.NumberFormat(locale, {
+        style: "decimal",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+    });
+    return formatter.format(value);
+}
+export function parsePercent(input, locale) {
+    if (typeof input === "number")
+        return Number.isFinite(input) ? input : undefined;
+    if (typeof input !== "string")
+        return undefined;
+    let s = input.replace(/\s/g, "").replace(/%/g, "");
+    let decimalSep = "";
+    if (locale) {
+        const parts = new Intl.NumberFormat(locale).formatToParts(123.4);
+        for (const part of parts) {
+            if (part.type === "decimal")
+                decimalSep = part.value;
+        }
+    }
+    if (!decimalSep) {
+        const lastComma = s.lastIndexOf(",");
+        const lastDot = s.lastIndexOf(".");
+        if (lastComma >= 0 || lastDot >= 0) {
+            decimalSep = lastComma > lastDot ? "," : ".";
+        }
+    }
+    if (decimalSep && decimalSep !== ".") {
+        const reDec = new RegExp(`\\${decimalSep}`, "g");
+        s = s.replace(reDec, ".");
+    }
+    s = s.replace(/(?!^-)[^0-9.]/g, "");
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : undefined;
+}

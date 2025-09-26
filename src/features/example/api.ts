@@ -3,11 +3,12 @@ import * as React from 'react';
 export type LineItemType = 'folder' | 'product' | 'custom' | 'subproduct';
 
 export type LineItem = {
-  lineItemId: string | number;
+  lineItemId: string;
   type: LineItemType;
   name: string;
   quantity?: number;
   unitPrice?: number;
+  discount?: number; // percentage value 0..100
   children?: LineItem[];
   draggable?: boolean;
 };
@@ -321,4 +322,3 @@ export function useDuplicateLineItemsMutation(): [
 
   return [mutate, { isLoading, error }];
 }
-

@@ -8,13 +8,15 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import type { ColumnDef } from '../../components/GenericTreeTable/genericTreeTable.types';
 import TextEditor from '../../components/editors/TextEditor';
 import NumberEditor from '../../components/editors/NumberEditor';
-import { formatCurrency, parseCurrency } from '../../components/formatters/currency';
+import PercentageEditor from '../../components/editors/PercentageEditor';
+import { CurrencyFormatOptions, formatCurrency, parseCurrency } from '../../components/formatters/currency';
 import CurrencyEditor from '../../components/editors/CurrencyEditor';
 
 export type RowData = {
   name: string;
   qty?: number;
   unitPrice?: number;
+  discount?: number;
   draggable?: boolean;
   permission?: boolean;
   configurationPermission?: boolean;
@@ -31,8 +33,13 @@ export function TypeIcon({ type }: { type: string }) {
 export function buildColumns(
   editingNameRowId: string | null,
   setEditingNameRowId: React.Dispatch<React.SetStateAction<string | null>>,
-  options: { includeTotals?: boolean } = {}
+  options: { includeTotals?: boolean; language?: string; currency?: string } = {}
 ): ColumnDef<RowData>[] {
+  // Ensure sane defaults even when a partial options object is supplied
+  const language = options.language ?? "de-DE";
+  const currency = options.currency ?? "EUR";
+  const includeTotals = options.includeTotals ?? false;
+  const currencyOptions: CurrencyFormatOptions = { locale: language, currency };
 
   const cols: ColumnDef<RowData>[] = [
     {
@@ -80,13 +87,47 @@ export function buildColumns(
       width: 140,
       getIsEditable: (row) => row.type !== 'folder' && (row.propertyPermissions?.unitPrice ?? true),
       getIsVisible: (vm) => vm !== 'customer',
-      editor: CurrencyEditor,
-      valueParser: parseCurrency,
-      valueFormatter: (v) => formatCurrency(typeof v === 'number' ? v : undefined),
+      editor: ({ value, onChange, commit, cancel, autoFocus }) => (
+        <CurrencyEditor 
+        value={value as any}
+         onChange={onChange as any} 
+         onCommit={commit} 
+         onCancel={cancel} 
+         autoFocus={autoFocus}
+          locale={language} 
+          currency={currency}
+           />
+      ),
+      valueFormatter: (v) => formatCurrency(typeof v === 'number' ? v : undefined, currencyOptions),
+    },
+    {
+      id: 'discount',
+      header: 'Rabatt',
+      align: 'right',
+      width: 120,
+      getIsEditable: (row) => row.type !== 'folder',
+      // Use the PercentageEditor; it emits fractions (0.15 for 15%)
+      editor: ({ value, onChange, commit, cancel, autoFocus }) => (
+        <PercentageEditor
+          value={typeof value === 'number' ? (value as number) : undefined}
+          onChange={onChange as any}
+          onCommit={commit}
+          onCancel={cancel}
+          autoFocus={autoFocus}
+          locale={options.language}
+          min={0}
+          max={100}
+          step={0.1}
+        />
+      ),
+      valueFormatter: (v) => {
+        if (typeof v !== 'number') return '';
+        return `${v.toLocaleString(options.language, { maximumFractionDigits: 2 })} %`;
+      },
     },
   ];
 
-  if (options.includeTotals) {
+  if (includeTotals) {
     cols.push({
       id: 'total',
       header: 'Summe',
@@ -98,11 +139,10 @@ export function buildColumns(
         const p = (row as any).unitPrice as number | undefined;
         if (row.type === 'folder' || row.type === 'subproduct') return '';
         if (typeof q !== 'number' || typeof p !== 'number') return '';
-        return formatCurrency(q * p);
+        return formatCurrency(q * p, currencyOptions);
       },
     });
   }
 
   return cols;
 }
-

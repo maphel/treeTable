@@ -1,0 +1,26 @@
+import { type Dispatch, type ReactNode, type SetStateAction } from "react";
+import type { ColumnDef, RowModel, VisibleRow } from "./genericTreeTable.types.js";
+export type DraggableRowProps<T extends object> = {
+    data: VisibleRow<T>;
+    visibleColumns: ColumnDef<T>[];
+    size: "small" | "medium";
+    readOnly: boolean;
+    getRowCanDrag?: (row: RowModel<T>) => boolean;
+    getRowCanDrop?: (source: RowModel<T>, target: RowModel<T>, position: "inside" | "before" | "after") => boolean;
+    validTargets: Set<string> | null;
+    overId: string | null;
+    activeId: string | null;
+    byKey: Map<string, RowModel<T>>;
+    toggle: (id: string) => void;
+    viewMode: string | undefined;
+    getRowActions?: (row: RowModel<T>) => ReactNode;
+    editingKey: string | null;
+    editingValue: any;
+    setEditingKey: Dispatch<SetStateAction<string | null>>;
+    setEditingValue: Dispatch<SetStateAction<any>>;
+    autoClosedKeys: Set<string>;
+    markAutoClosed: (key: string) => void;
+    startEdit: (row: RowModel<T>, column: ColumnDef<T>) => void;
+    onEditCommit?: (row: RowModel<T>, column: ColumnDef<T>, next: unknown) => Promise<void> | void;
+};
+export default function DraggableRow<T extends object>(props: DraggableRowProps<T>): import("react/jsx-runtime").JSX.Element;

@@ -29,6 +29,7 @@ import {
     useInlineEditing,
     useValidTargets
 } from "./hooks.js"
+import { createCollisionDetector } from "./genericTable.collision.js"
 
 
 export function GenericTreeTable<T extends object>(props: TreeTableProps<T>) {

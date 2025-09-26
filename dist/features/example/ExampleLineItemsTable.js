@@ -3,10 +3,10 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import TreeTable from '../../components/TreeTable/TreeTable';
 import { buildColumns } from './buildColumns';
 import RowActions from './components/RowActions';
 import { useDeleteLineItemsMutation, useDuplicateLineItemsMutation, useGetLineItemsQuery, useMoveLineItemsMutation, useUpdateLineItemMutation, } from './api';
+import { GenericTreeTable } from '../../components/GenericTreeTable/GenericTreeTable';
 function toRows(items, depth = 0) {
     if (!items)
         return [];
@@ -17,6 +17,7 @@ function toRows(items, depth = 0) {
         name: i.name,
         qty: i.quantity,
         unitPrice: i.unitPrice,
+        discount: i.discount,
         draggable: i.draggable,
         children: toRows(i.children, depth + 1),
     }));
@@ -107,7 +108,7 @@ export function ExampleLineItemsTable() {
     }, [rows, moveLineItems]);
     const COLUMN_PROP_MAP = React.useMemo(() => ({ qty: 'quantity', name: 'name', unitPrice: 'unitPrice' }), []);
     return (_jsxs(_Fragment, { children: [_jsxs(Box, { sx: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }, children: [_jsx(Box, { sx: { fontWeight: 600, color: 'text.secondary' }, children: "Ansicht" }), _jsxs(ToggleButtonGroup, { exclusive: true, size: "small", value: view, onChange: (_, next) => { if (next)
-                            setView(next); }, "aria-label": "Ansicht w\u00E4hlen", children: [_jsx(ToggleButton, { value: "pro", "aria-label": "Pro-Ansicht", children: "Pro" }), _jsx(ToggleButton, { value: "customer", "aria-label": "Kundenansicht", children: "Kunde" })] })] }), _jsx(TreeTable, { dragActivation: { mode: 'distance', distance: 3 }, rows: rows, columns: columns, viewMode: view, actionsHeader: "Aktionen", onEditCommit: async (row, column, next) => {
+                            setView(next); }, "aria-label": "Ansicht w\u00E4hlen", children: [_jsx(ToggleButton, { value: "pro", "aria-label": "Pro-Ansicht", children: "Pro" }), _jsx(ToggleButton, { value: "customer", "aria-label": "Kundenansicht", children: "Kunde" })] })] }), _jsx(GenericTreeTable, { dragActivation: { mode: 'distance', distance: 3 }, rows: rows, columns: columns, viewMode: view, actionsHeader: "Aktionen", onEditCommit: async (row, column, next) => {
                     var _a;
                     const lineItemId = row.id;
                     const prop = (_a = COLUMN_PROP_MAP[column.id]) !== null && _a !== void 0 ? _a : column.id;

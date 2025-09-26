@@ -6,7 +6,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
-import type { RowModel } from '../../../components/TreeTable/types';
+import type { RowModel } from '../../../components/GenericTreeTable/genericTreeTable.types';
 
 export type RowActionsProps<T extends object = {}> = {
   row: RowModel<T> & {

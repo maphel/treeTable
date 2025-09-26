@@ -3,8 +3,6 @@ import Box from '@mui/material/Box';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-import TreeTable from '../../components/TreeTable/TreeTable';
-import { ColumnDef, RowModel, RowId } from '../../components/TreeTable/types';
 import { buildColumns } from './buildColumns';
 import RowActions from './components/RowActions';
 import {
@@ -15,11 +13,14 @@ import {
   useMoveLineItemsMutation,
   useUpdateLineItemMutation,
 } from './api';
+import { GenericTreeTable } from '../../components/GenericTreeTable/GenericTreeTable';
+import { RowModel } from '../../components/GenericTreeTable/genericTreeTable.types';
 
 type RowData = {
   name: string;
   qty?: number;
   unitPrice?: number;
+  discount?: number;
   draggable?: boolean;
   permission?: boolean;
   configurationPermission?: boolean;
@@ -37,6 +38,7 @@ function toRows(items: LineItem[] | undefined, depth = 0): ExampleRow[] {
     name: i.name,
     qty: i.quantity,
     unitPrice: i.unitPrice,
+    discount: (i as any).discount,
     draggable: i.draggable,
     children: toRows(i.children, depth + 1),
   }));
@@ -70,9 +72,9 @@ function useViewMode(): [ExampleView, (next: ExampleView) => void] {
 }
 
 function buildMoveIndex(nodes: ExampleRow[]) {
-  const parentOf = new Map<RowId, RowId | null>();
-  const childrenOf = new Map<RowId | null, RowId[]>();
-  const walk = (list: ExampleRow[], parent: RowId | null) => {
+  const parentOf = new Map<string, string | null>();
+  const childrenOf = new Map<string | null, string[]>();
+  const walk = (list: ExampleRow[], parent: string | null) => {
     childrenOf.set(parent, list.map((n) => n.id));
     for (const n of list) {
       parentOf.set(n.id, parent);
@@ -95,7 +97,7 @@ export function ExampleLineItemsTable() {
   const [view, setView] = useViewMode();
   const isCustomer = view === 'customer';
 
-  const [editingNameRowId, setEditingNameRowId] = React.useState<RowId | null>(null);
+  const [editingNameRowId, setEditingNameRowId] = React.useState<string | null>(null);
   const columns = React.useMemo(() => buildColumns(editingNameRowId, setEditingNameRowId, { includeTotals: true }), [editingNameRowId]);
 
   const getRowCanDrag = React.useCallback((row: ExampleRow) => {
@@ -109,10 +111,10 @@ export function ExampleLineItemsTable() {
     return true;
   }, []);
 
-  const handleDrop = React.useCallback(async (sourceId: RowId, targetId: RowId, position: 'inside' | 'before' | 'after') => {
+  const handleDrop = React.useCallback(async (sourceId: string, targetId: string, position: 'inside' | 'before' | 'after') => {
     const { parentOf, childrenOf } = buildMoveIndex(rows);
-    let parentLineItemId: RowId | null = null;
-    let previousLineItem: 'FIRST' | 'LAST' | { lineItemId: RowId } = 'LAST';
+    let parentLineItemId: string | null = null;
+    let previousLineItem: 'FIRST' | 'LAST' | { lineItemId: string } = 'LAST';
 
     if (position === 'inside') {
       parentLineItemId = targetId;
@@ -144,7 +146,7 @@ export function ExampleLineItemsTable() {
         </ToggleButtonGroup>
       </Box>
 
-      <TreeTable
+      <GenericTreeTable
         dragActivation={{ mode: 'distance', distance: 3 }}
         rows={rows}
         columns={columns}
